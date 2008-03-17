@@ -1,0 +1,27 @@
+{% extends "survey/base.html" %}
+{% block content %}{% load survey %}
+<h1>Surveys</h1>
+<fieldset class="module">
+<table style="width: 100%">
+    <thead><th>Survey</th><th>Status</th><th>Info</th></thead>
+    {% for survey in object_list %}
+    {% if survey.open or user|can_view_answers:survey %}
+    <tr class="{% cycle row1,row2 %}">
+        <td>{% if survey.open and not request|has_answered:survey %}<a href='{{ survey.slug }}/'>{{ survey.title|escape }}</a>
+            {% else %}{{ survey.title|escape }}{% endif %}</td>
+        <td>{{ survey.status }}</td>
+        <td>
+        {% if user|can_view_answers:survey %}
+            {% if survey.submission_count %}
+                <a href='{% url survey-results slug=survey.slug %}'>{{ survey.submission_count }} Submission{{ survey.submission_count|pluralize:"s" }}</a>
+            {% else %}
+                No Submissions.
+            {% endif %}
+        {% endif %}
+        {% if request|has_answered:survey %}You have <a href='{% url survey-submission slug=survey.slug,key=request.session.session_key %}'>completed</a> this survey.{% endif %}
+        </td></tr>
+    {% endif %}
+    {% endfor %}
+</table>
+</fieldset>
+{% endblock %}
