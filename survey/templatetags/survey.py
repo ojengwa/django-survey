@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.cache import cache
 from cPickle import loads, dumps, HIGHEST_PROTOCOL
 import datetime
-import feedparser
+#import feedparser
 import re
 import time
 
