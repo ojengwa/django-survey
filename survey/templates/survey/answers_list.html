@@ -1,4 +1,4 @@
-{% extends "survey/base.html" %}{% load propmgr %}
+{% extends "survey/base.html" %}
 {% block scripts %}{% load adminmedia %}
 <style type="text/css">
 .question pre { margin-left: 2em; }
@@ -26,12 +26,12 @@
         onclick='var foo=document.getElementById("results{{forloop.counter}}");
                  if (foo.style.display=="none") { foo.style.display="block"; }
                  else { foo.style.display="none"; }'
-    >{{ question.text|escape }} <i>({{ question.answer_count }} {% if question.choices.count %}Vote{% else %}Answer{% endif %}{{ question.answer_count|pluralize:"s" }})</i></h2>
+    >{{ question.text }} <i>({{ question.answer_count }} {% if question.choices.count %}Vote{% else %}Answer{% endif %}{{ question.answer_count|pluralize:"s" }})</i></h2>
     <div id='results{{forloop.counter}}' class='question-results'>
 {% if question.choices.count %}
     {% for choice in question.choices %}
         <table border="0" cellpadding="0" cellspacing="0" class="bar">
-            <caption class="barAnswer">{% ifequal question.qtype "I" %}<img src="{{ choice.text }}"/>{% else %}{{ choice.text|escape }}{% endifequal %}</caption>
+            <caption class="barAnswer">{% ifequal question.qtype "I" %}<img src="{{ choice.text }}"/>{% else %}{{ choice.text }}{% endifequal %}</caption>
             <tr>
                 <td style="width: {% widthratio choice.count question.answer_count 100 %}%" class="barColor">{% if choice.count %}&nbsp;{% endif %}</td>
                 <td class="barPercent"><strong class="barVotes">{{ choice.count }}&nbsp;vote{{ choice.count|pluralize:"s" }}</strong>&nbsp;/&nbsp;{% widthratio choice.count question.answer_count 100 %}%</td>
@@ -41,7 +41,7 @@
 {% else %}
     {% for answer in question.answers.all %}
         <div>{% if view_submissions %}<a href='{{ answer.session_key }}/'>{% endif %}Answer {{ forloop.counter }}{% if view_submissions %}</a>{% endif %} of {{ question.answer_count }}</div>
-        <div class="answer">{{ answer.text|escape|preserveindentbr }}</div>
+        <div class="answer">{{ answer.text }}</div>
         <hr/>
     {% endfor %}
 {% endif %}

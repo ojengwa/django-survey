@@ -7,8 +7,8 @@
     {% for survey in object_list %}
     {% if survey.open or user|can_view_answers:survey %}
     <tr class="{% cycle row1,row2 %}">
-        <td>{% if survey.open and not request|has_answered:survey %}<a href='{{ survey.slug }}/'>{{ survey.title|escape }}</a>
-            {% else %}{{ survey.title|escape }}{% endif %}</td>
+        <td>{% if survey.open and not request|has_answered:survey %}<a href='{{ survey.slug }}/'>{{ survey.title }}</a>
+            {% else %}{{ survey.title }}{% endif %}</td>
         <td>{{ survey.status }}</td>
         <td>
         {% if user|can_view_answers:survey %}

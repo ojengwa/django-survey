@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{% load adminmedia %}
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="" >
+<head>
+<title>{% if title %}{{ title }}{% else %}Survey Example{% endif %}</title>
+<meta name="robots" content="NONE,NOARCHIVE" />
+<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/dashboard.css" />
+{% block scripts %}
+{% endblock scripts %}
+{% block styles %}
+{% endblock styles %}
+</head>
+<body class="dashboard">
+
+<!-- Container -->
+<div id="container">
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+
+<h1 id="site-name">Survey Example</h1>
+
+        </div>
+
+        <div id="user-tools">
+            <a href="/admin/">admin</a>
+        </div>
+
+
+    </div>
+    <!-- END Header -->
+
+    <!-- Content -->
+    <div id="content" class="colMS">
+
+            {% block content %}
+            Content.
+            {% endblock content %}
+    </div>
+</div>
+</body>
+
