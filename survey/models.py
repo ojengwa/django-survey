@@ -68,7 +68,7 @@ class Survey(models.Model):
     def answer_count(self):
         if hasattr(self, '_answer_count'):
             return self._answer_count
-        self._answer_count = sum(q.answer_count for q in self.quesitons)
+        self._answer_count = sum(q.answer_count for q in self.questions)
         return self._answer_count
 
     @property
