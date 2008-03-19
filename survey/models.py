@@ -112,11 +112,13 @@ class Question(models.Model):
                                  edit_inline=models.TABULAR,
                                  min_num_in_admin=5,
                                  num_in_admin=5, num_extra_on_change=3,
-                                 verbose_name=_('survey'))
+                                 verbose_name=_('survey'),
+                                 null=True,)
     qtype    = models.CharField(_('question type'), max_length=2,
                                 choices=QTYPE_CHOICES)
     required = models.BooleanField(_('required'), default=True)
     text     = models.TextField(_('question text'), core=True)
+    choice_group = models.ForeignKey('ChoiceGroup', related_name='questions', blank=True, null=True)
 
     ## model validation for requiring choices.
 
@@ -141,7 +143,7 @@ class Question(models.Model):
         list_display_links = ('text',)
         list_display = ('survey', 'text', 'qtype', 'required')
         search_fields = ('text',)
-
+    """
     @property
     def choices(self):
         return self._choices.extra(
@@ -154,16 +156,29 @@ class Question(models.Model):
                     '           "survey_choice"."question_id")'
             },
         )
+    """
+class ChoiceGroup(models.Model):
+    name = models.CharField(_('choice group name'), max_length=80)
+    
+    class Meta:
+        pass
+    class Admin:
+        pass
+    
+    def __unicode__(self):
+        return '%s: %s'%(self.name,'-'.join([t.text for t in self._choices.all()]))
 
 class Choice(models.Model):
     ## validate question is of proper qtype
-    question = models.ForeignKey(Question, related_name='_choices',
-                                 edit_inline=models.TABULAR,
-                                 min_num_in_admin=5,
-                                 num_in_admin=5, num_extra_on_change=3,
-                                 verbose_name=_('question'))
+    choice_group = models.ForeignKey(ChoiceGroup, related_name='_choices',
+                                    edit_inline=models.TABULAR,
+                                    min_num_in_admin=5,
+                                    num_in_admin=5, num_extra_on_change=3,
+                                    verbose_name=_('choice group'),
+                                    null=True,
+                                    )
     text = models.CharField(_('choice text'), max_length=500, core=True)
-
+    """
     @property
     def count(self):
         if hasattr(self, '_count'):
@@ -171,14 +186,14 @@ class Choice(models.Model):
         self._count = Answer.objects.filter(question=self.question_id,
                                             text=self.text).count()
         return self._count
-
+    """
     def __unicode__(self):
         return self.text
 
     class Meta:
-        unique_together = (('question', 'text'),)
-        order_with_respect_to='question'
-        ordering = ('question', 'id')
+        unique_together = (('choice_group', 'text'),)
+        order_with_respect_to='choice_group'
+        ordering = ('choice_group', 'id')
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, related_name='answers',

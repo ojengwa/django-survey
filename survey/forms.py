@@ -60,7 +60,7 @@ class ChoiceAnswer(BaseAnswerForm):
     def __init__(self, *args, **kwdargs):
         super(ChoiceAnswer, self).__init__(*args, **kwdargs)
         choices = [ (str(opt.id), opt.text)
-                    for opt in self.question._choices.all() ]
+                    for opt in self.question.choice_group._choices.all() ]
         self.choices = choices
         self.choices_dict = dict(choices)
         self.fields['answer'].choices = choices
