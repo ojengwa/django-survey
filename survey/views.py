@@ -12,13 +12,30 @@ from models import Survey, Answer
 from datetime import datetime
 
 def _survey_redirect(request, survey):
-    if survey.answers_viewable_by(request.user):
-        return HttpResponseRedirect(reverse('survey-results', None, (),
-                                                {'slug': survey.slug}))
+    """
+    Conditionally redirect to the appropriate page;
+    if there is a "next" value in the GET URL parameter,
+    go to the URL specified under Next.
+    
+    If there is no "next" URL specified, then go to
+    the survey results page...but only if it is viewable
+    by the user.
+    
+    Otherwise, only direct the user to a page showing
+    their own survey answers...assuming they have answered
+    any questions.
+    
+    If all else fails, go to the Thank You page.
+    """
     if ('next' in request.REQUEST and
         request.REQUEST['next'].startswith('http:') and
         request.REQUEST['next'] != request.path):
         return HttpResponseRedirect(request.REQUEST['next'])
+    if survey.answers_viewable_by(request.user):
+        return HttpResponseRedirect(reverse('survey-results', None, (),
+                                                {'slug': survey.slug}))
+    
+    # For this survey, have they answered any questions?
     if (hasattr(request, 'session') and Answer.objects.filter(
             session_key=request.session.session_key.lower(),
             question__survey__visible=True,
@@ -27,17 +44,24 @@ def _survey_redirect(request, survey):
             reverse('survey-submission', None, (),
                     {'slug': survey.slug,
                      'key': request.session.session_key.lower()}))
+                     
+    # go to thank you page
     return render_to_response('survey/thankyou.html',
                               {'survey': survey, 'title': _('Thank You')},
                               context_instance=RequestContext(request))
 
 def survey_detail(request, slug):
+    """
+    
+    """
     survey = get_object_or_404(Survey.objects.filter(visible=True), slug=slug)
     if survey.closed:
         if survey.answers_viewable_by(request.user):
             return HttpResponseRedirect(reverse('survey-results', None, (),
                                                 {'slug': slug}))
         raise Http404 #(_('Page not found.')) # unicode + exceptions = bad
+    # if user has a session and have answered some questions,
+    # go ahead and redirect to the answers, or a thank you 
     if (hasattr(request, 'session') and
         survey.has_answers_from(request.session.session_key)):
         return _survey_redirect(request, survey)
@@ -49,9 +73,9 @@ def survey_detail(request, slug):
                                  request.method == 'POST')
         request.session.modified = True ## enforce the cookie save.
     survey.forms = forms_for_survey(survey, request)
-    if (request.POST and
-        reduce(lambda x, y: x and y.is_valid(), survey.forms, True)):
-        for form in survey.forms: form.save()
+    if (request.POST and all(form.is_valid() for form in survey.forms)):
+        for form in survey.forms:
+            form.save()
         return _survey_redirect(request, survey)
 
     return render_to_response('survey/survey_detail.html',
@@ -59,7 +83,11 @@ def survey_detail(request, slug):
                               context_instance=RequestContext(request))
 
 def answers_list(request, slug):
+    """
+    Shows a page showing survey results for an entire survey.
+    """
     survey = get_object_or_404(Survey.objects.filter(visible=True), slug=slug)
+    # if the user lacks permissions, show an "Insufficient Permissions page"
     if not survey.answers_viewable_by(request.user):
         if (hasattr(request, 'session') and
             survey.has_answers_from(request.session.session_key)):
@@ -75,6 +103,11 @@ def answers_list(request, slug):
         context_instance=RequestContext(request))
 
 def answers_detail(request, slug, key):
+    """
+    Shows a page with survey results for a single person.
+    
+    If the user lacks permissions, show an "Insufficient Permissions page".
+    """
     answers = Answer.objects.filter(session_key=key.lower(),
         question__survey__visible=True, question__survey__slug=slug)
     if not answers.count(): raise Http404
