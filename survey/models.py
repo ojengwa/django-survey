@@ -158,7 +158,8 @@ class Question(models.Model):
         )
     """
 class ChoiceGroup(models.Model):
-    name = models.CharField(_('choice group name'), max_length=80)
+    name = models.CharField(_('choice group name'), max_length=30)
+    description = models.TextField(_('choice group description'), blank=True, null=True)
     
     class Meta:
         pass
@@ -166,7 +167,9 @@ class ChoiceGroup(models.Model):
         pass
     
     def __unicode__(self):
-        return '%s: %s'%(self.name,'-'.join([t.text for t in self._choices.all()]))
+        if self.description:
+            return u'%s: %s' % (self.name, self.description) 
+        return u'%s' % (self.name)
 
 class Choice(models.Model):
     ## validate question is of proper qtype
