@@ -3,6 +3,7 @@ from django.newforms import BaseForm, Form, ValidationError
 from django.newforms import CharField, ChoiceField
 from django.newforms import Textarea, TextInput, Select, RadioSelect
 from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import mark_safe
 from itertools import chain
 
 
@@ -78,7 +79,8 @@ class ChoiceRadio(ChoiceAnswer):
 class ChoiceImage(ChoiceAnswer):
     def __init__(self, *args, **kwdargs):
         super(ChoiceImage, self).__init__(*args, **kwdargs)
-        self.choices = [ (k,'<img src="'+v+'"/>') for k,v in self.choices ]
+        self.choices =[ (k, mark_safe('<img src="'+v+'"/>')) 
+                           for k,v in self.choices ]
         self.fields['answer'].widget = RadioSelect(choices=self.choices)
 
 ## each question gets a form with one element, determined by the type
