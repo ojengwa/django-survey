@@ -1,0 +1,79 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>create_survey</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">create_survey</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/admin/survey/survey/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add survey</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id_title</td>
+	<td>survey test</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>slug</td>
+	<td>survey-test</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id_opens_date</td>
+	<td>2008-03-26</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Now</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id_closes_date</td>
+	<td>2008-05-26</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//a[contains(@href, 'javascript:DateTimeShortcuts.handleClockQuicklink(1, new Date().getHourMinuteSecond());')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id_visible</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>id_public</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id_created_by</td>
+	<td>label=yml</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id_editable_by</td>
+	<td>label=yml</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@value='Save']</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

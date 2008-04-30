@@ -1,16 +1,23 @@
-from models import QTYPE_CHOICES, Answer
+from models import QTYPE_CHOICES, Answer, Survey, Question, Choice
 from django.newforms import BaseForm, Form, ValidationError
 from django.newforms import CharField, ChoiceField
-from django.newforms import Textarea, TextInput, Select, RadioSelect
+from django.newforms import Textarea, TextInput, Select, RadioSelect,\
+                        CheckboxSelectMultiple, MultipleChoiceField
+from django.newforms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.template.defaultfilters import slugify
+
 from itertools import chain
+import uuid
 
 
 class BaseAnswerForm(Form):
-    def __init__(self, question, session_key, *args, **kwdargs):
+    def __init__(self, question, user, interview_uuid, session_key, *args, **kwdargs):
         self.question = question
         self.session_key = session_key.lower()
+        self.user = user
+        self.interview_uuid = interview_uuid
         super(BaseAnswerForm, self).__init__(*args, **kwdargs)
         answer = self.fields['answer']
         answer.required = question.required
@@ -25,6 +32,8 @@ class BaseAnswerForm(Form):
         ans = Answer()
         ans.question = self.question
         ans.session_key = self.session_key
+        ans.user = self.user
+        ans.interview_uuid = self.interview_uuid
         ans.text = self.cleaned_data['answer']
         if commit: ans.save()
         return ans
@@ -79,9 +88,45 @@ class ChoiceRadio(ChoiceAnswer):
 class ChoiceImage(ChoiceAnswer):
     def __init__(self, *args, **kwdargs):
         super(ChoiceImage, self).__init__(*args, **kwdargs)
-        self.choices =[ (k, mark_safe('<img src="'+v+'"/>')) 
-                           for k,v in self.choices ]
+        self.choices = [ (k,mark_safe('<img src="'+v+'"/>')) for k,v in self.choices ]
         self.fields['answer'].widget = RadioSelect(choices=self.choices)
+
+class ChoiceCheckbox(BaseAnswerForm):
+    answer = MultipleChoiceField(widget=CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwdargs):
+        super(ChoiceCheckbox, self).__init__(*args, **kwdargs)
+        choices = [ (str(opt.id), opt.text)
+                    for opt in self.question._choices.all() ]
+        self.choices = choices
+        print "choices in the checkbox list : ", choices
+        self.choices_dict = dict(choices)
+        self.fields['answer'].choices = choices
+        print "##self.fields",self.fields
+    def clean_answer(self):
+        
+        keys = self.cleaned_data['answer']
+        print "Choice Checkbox clean answer : ", keys
+        if not keys and self.fields['answer'].required:
+            raise ValidationError, _('This field is required.')
+        for key in keys:
+            if not key and self.fields['answer'].required:
+                raise ValidationError, _('Invalid Choice.')
+        return [self.choices_dict.get(key, key) for key in keys]
+    def save(self, commit=True):
+        if not self.cleaned_data['answer']:
+            if self.fields['answer'].required:
+                raise ValidationError, _('This field is required.')
+            return
+        ans_list = []
+        for text in self.cleaned_data['answer']:
+            ans = Answer()
+            ans.question = self.question
+            ans.session_key = self.session_key
+            ans.text = text
+            if commit: ans.save()
+            ans_list.append(ans)
+        return ans_list 
 
 ## each question gets a form with one element, determined by the type
 ## for the answer.
@@ -91,12 +136,36 @@ QTYPE_FORM = {
     'S': ChoiceAnswer,
     'R': ChoiceRadio,
     'I': ChoiceImage,
+    'C': ChoiceCheckbox,
 }
 
 def forms_for_survey(survey, request):
     ## add session validation to base page.
     sp = str(survey.id) + '_'
     session_key = request.session.session_key.lower()
+    login_user = request.user
+    random_uuid = uuid.uuid4().hex
     post = request.POST if request.POST else None # bug in newforms
-    return [QTYPE_FORM[q.qtype](q, session_key, prefix=sp+str(q.id), data=post)
+    return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post)
             for q in survey.questions.all() ]
+
+class SurveyForm(ModelForm):
+    class Meta:
+        model = Survey
+        exclude = ("created_by","editable_by","slug")
+    def clean(self):
+        title_slug = slugify(self.cleaned_data.get("title"))
+        if not len(Survey.objects.filter(slug=title_slug))==0:
+            raise ValidationError, _('The title of the survey must be unique.')
+        return self.cleaned_data
+
+        
+class QuestionForm(ModelForm):
+    class Meta:
+        model= Question
+        exclude = ("survey")
+        
+class ChoiceForm(ModelForm):
+    class Meta:
+        model = Choice
+        exclude = ("question")

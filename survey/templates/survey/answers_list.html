@@ -17,7 +17,7 @@
 </style>
 {% endblock %}
 {% block content %}
-<h1>{{ title }} <i>({{ survey.submission_count }} Submission{{ survey.submission_count|pluralize:"s" }})</i></h1>
+<h1>{{ title }} <i>({{ survey.interview_count }} Interview{{ survey.interview_count|pluralize:"s" }})</i></h1>
 <br/>
 {% for question in survey.questions.all %}
 <div class='question'>
@@ -40,7 +40,7 @@
     {% endfor %}
 {% else %}
     {% for answer in question.answers.all %}
-        <div>{% if view_submissions %}<a href='{{ answer.session_key }}/'>{% endif %}Answer {{ forloop.counter }}{% if view_submissions %}</a>{% endif %} of {{ question.answer_count }}</div>
+        <div>{% if view_submissions %}<a href='{% url answers-detail slug=survey.slug,key=answer.session_key %}/'>{% endif %}Answer {{ forloop.counter }}{% if view_submissions %}</a>{% endif %} of {{ question.answer_count }}</div>
         <div class="answer">{{ answer.text }}</div>
         <hr/>
     {% endfor %}

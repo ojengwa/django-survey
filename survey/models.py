@@ -1,29 +1,55 @@
 """Survey Models
 """
+from datetime import *
+
 from django.db import models
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import encoding
 from django.template.defaultfilters import date as datefilter
 from django.utils.translation import ugettext_lazy as _
-from datetime import *
+from django.contrib.auth.models import User
+
 
 QTYPE_CHOICES = (
     ('T', 'Text Input'),
     ('A', 'Text Area'),
     ('S', 'Select One Choice'),
     ('R', 'Radio List'),
-    ('I', 'Radio Image List')
+    ('I', 'Radio Image List'),
+    ('C', 'Checkbox List')
 )
 
 class Survey(models.Model):
-    slug    = models.SlugField(_('survey name'), unique=True)
+
     title   = models.CharField(_('survey title'), max_length=80)
-    visible = models.BooleanField(_('survey is visible'))
-    public  = models.BooleanField(_('survey results are public'))
+    slug    = models.SlugField(_('slug'),
+                            prepopulate_from=("title",), unique=True)
+    description= models.TextField(verbose_name=_("description"),
+                            help_text=_("This field appears on the public web\
+                                        site and should give an overview to the \
+                                        interviewee"), blank=True)
+
     ## Add validation on datetimes
     opens   = models.DateTimeField(_('survey starts accepting submissions on'))
     closes  = models.DateTimeField(_('survey stops accepting submissions on'))
+    # Define the behavior of the survey
+    visible = models.BooleanField(_('survey is visible'))
+    public  = models.BooleanField(_('survey results are public'))
+    restricted = models.BooleanField(verbose_name=_("restrict the survey to authentified user")
+                                     ,blank=True,default=False)
+    allows_multiple_interviews = models.BooleanField(verbose_name=_("allows multiple interviews")
+                                                     ,blank=True,default=True)
+    template_name = models.CharField(_('template name'),max_length=150,
+                                     null=True, blank=True,
+        help_text=_("This field is used to define a custom template\
+        Example: 'dj_survey/template/my_add_interview_forms.html'."))
+
+    # Control who can edit the survey
+    # TODO: Plug this control in the view used to edit the survey
+
+    created_by = models.ForeignKey(User, related_name="created_surveys")
+    editable_by = models.ForeignKey(User,related_name="owned_surveys")
 
     @property
     def _cache_name(self):
@@ -72,8 +98,16 @@ class Survey(models.Model):
         return self._answer_count
 
     @property
-    def submission_count(self):
-        if hasattr(self, '_submission_count'):
+    def interview_count(self):
+        if hasattr(self, '_interview_count'):
+            return self._interview_count
+        self._interview_count = len(Answer.objects.filter(
+            question__survey=self.id).values('interview_uuid').distinct())
+        return self._interview_count
+    
+    @property
+    def session_key_count(self):
+        if hasattr(self, 'session_key_count'):
             return self._submission_count
         self._submission_count = len(Answer.objects.filter(
             question__survey=self.id).values('session_key').distinct())
@@ -83,7 +117,9 @@ class Survey(models.Model):
         return bool(
             Answer.objects.filter(session_key__exact=session_key.lower(),
             question__survey__id__exact=self.id).distinct().count())
-
+    
+    
+    
     def __unicode__(self):
         return u' - '.join([self.slug, self.title])
 
@@ -108,16 +144,27 @@ class Survey(models.Model):
 
 
 class Question(models.Model):
-    survey   = models.ForeignKey(Survey, related_name='questions',
-                                 edit_inline=models.TABULAR,
-                                 min_num_in_admin=5,
-                                 num_in_admin=5, num_extra_on_change=3,
+    survey = models.ForeignKey(Survey, related_name='questions',
                                  verbose_name=_('survey'))
-    qtype    = models.CharField(_('question type'), max_length=2,
+    qtype = models.CharField(_('question type'), max_length=2,
                                 choices=QTYPE_CHOICES)
     required = models.BooleanField(_('required'), default=True)
     text     = models.TextField(_('question text'), core=True)
-
+    order = models.IntegerField(verbose_name = _("order"),
+                                null=True, blank=True, core=True)
+    # TODO: Add a button or check box to remove the file. There are several
+    # recipes floating on internet. I like the one with a custom widget
+    image = models.ImageField(verbose_name=_("image"),
+                              upload_to= "dj_survey/question" + "/%Y/%m/%d/",
+                              null=True, blank= True, core=False)
+    # Define if the user must select at least 'choice_num_min' number of
+    # choices and at most 'choice_num_max' 
+    choice_num_min = models.IntegerField(_("minimun number of choices"),
+                                         null=True, blank=True,)
+    choice_num_max = models.IntegerField(_("maximum number of choices"),
+                                         null=True, blank=True,)
+    # TODO: Modify the forms to respect the style defined by this attr (html,css)
+    qstyle = models.TextField(_("Html Style"),null=True, blank=True) 
     ## model validation for requiring choices.
 
     @property
@@ -126,6 +173,7 @@ class Question(models.Model):
             return self._answer_count
         self._answer_count = self.answers.count()
         return self._answer_count
+    
 
     def __unicode__(self):
         return u' - '.join([self.survey.slug, self.text])
@@ -133,7 +181,7 @@ class Question(models.Model):
     class Meta:
         unique_together = (('survey', 'text'),)
         order_with_respect_to='survey'
-        ordering = ('survey', 'id')
+        ordering = ('survey', 'order')
 
     class Admin:
         list_select_related = True
@@ -142,6 +190,7 @@ class Question(models.Model):
         list_display = ('survey', 'text', 'qtype', 'required')
         search_fields = ('text',)
 
+    # TODO: add this a fallback to this optimisation with django ORM.
     @property
     def choices(self):
         return self._choices.extra(
@@ -158,12 +207,18 @@ class Question(models.Model):
 class Choice(models.Model):
     ## validate question is of proper qtype
     question = models.ForeignKey(Question, related_name='_choices',
-                                 edit_inline=models.TABULAR,
-                                 min_num_in_admin=5,
-                                 num_in_admin=5, num_extra_on_change=3,
                                  verbose_name=_('question'))
     text = models.CharField(_('choice text'), max_length=500, core=True)
+    # TODO: Add a button or check box to remove the file. There are several
+    # recipes floating on internet. I like the one with a custom widget
+    image = models.ImageField(verbose_name = _("image"),
+                              upload_to= "dj_survey/choice" + "/%Y/%m/%d/",
+                              null=True ,blank= True)
 
+    order = models.IntegerField(verbose_name = _("order"),
+                                null=True, blank=True, core=True)
+    class Admin:
+        pass
     @property
     def count(self):
         if hasattr(self, '_count'):
@@ -178,22 +233,31 @@ class Choice(models.Model):
     class Meta:
         unique_together = (('question', 'text'),)
         order_with_respect_to='question'
-        ordering = ('question', 'id')
+        ordering = ('question', 'order')
 
 class Answer(models.Model):
+    user = models.ForeignKey(User, related_name='answers',
+                             verbose_name=_('user'), editable=False,
+                             blank=True,null=True)
     question = models.ForeignKey(Question, related_name='answers',
                                  verbose_name=_('question'),
                                  editable=False)
     ## sessions expire, survey results do not, so keep the key.
     session_key = models.CharField(_('session key'), max_length=40)
     text = models.TextField(_('anwser text'))
+    submission_date = models.DateTimeField(auto_now=True)
+    # UUID is used to calculate the number of interviews
+    interview_uuid = models.CharField(_("Interview uniqe identifier"),max_length=36)
+    
 
     class Admin:
-        list_display = ('question', 'session_key', 'text')
+        list_display = ('interview_uuid','question','user', 'submission_date',
+                        'session_key', 'text')
+        
         #list_filter = ('question__survey',)
         search_fields = ('text',)
         list_select_related=True
     class Meta:
-        unique_together = (('question', 'session_key'),)
+        # unique_together = (('question', 'session_key'),)
         permissions = (("view_answers",     "Can view survey answers"),
                        ("view_submissions", "Can view survey submissions"))

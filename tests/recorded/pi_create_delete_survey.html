@@ -1,0 +1,64 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>pi_create_delete_survey</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">pi_create_delete_survey</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/survey/login/?next=/survey/editable/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@value='Log in']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Add survey</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id_title</td>
+	<td>create and delete survey</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id_opens</td>
+	<td>2008-04-01 11:11:11</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id_closes</td>
+	<td>2009-04-01 11:11:11</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>__AddSurvey</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[contains(@href, '/survey/delete/create-and-delete-survey/')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>__delete</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Log out</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

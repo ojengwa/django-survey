@@ -82,6 +82,9 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.admin',
+    'django.contrib.auth',
     'examples',
     'survey',
 )
+
+LOGIN_URL = "/survey/login/"

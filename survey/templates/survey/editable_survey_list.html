@@ -1,14 +1,14 @@
 {% extends "survey/base.html" %}
 {% block content %}{% load survey %}
 <h1>Surveys</h1>
+<ul class="object-tools"><li><a href={% url survey-add %} class="addlink">Add survey</a></li></ul>
 <fieldset class="module">
 <table style="width: 100%">
-    <thead><th>Survey</th><th>Status</th><th>Info</th></thead>
+    <thead><th>Survey</th><th>Status</th><th>Info</th><th>Actions</th></thead>
     {% for survey in object_list %}
-    {% if survey.open or user|can_view_answers:survey %}
     <tr class="{% cycle row1,row2 %}">
-        <td>{% if survey.open and not request|has_answered:survey %}<a href='{% url survey-detail slug=survey.slug %}'>{{ survey.title }}</a>
-            {% else %}{{ survey.title }}{% endif %}</td>
+        <td><a href='{% url survey-detail slug=survey.slug %}'>{{ survey.title }}</a>
+        </td>
         <td>{{ survey.status }}</td>
         <td>
         {% if user|can_view_answers:survey %}
@@ -19,8 +19,9 @@
             {% endif %}
         {% endif %}
         {% if request|has_answered:survey %}You have <a href='{% url answers-detail slug=survey.slug,key=request.session.session_key %}'>completed</a> this survey.{% endif %}
-        </td></tr>
-    {% endif %}
+        </td>
+        <td><a href={% url survey-edit slug=survey.slug %}>Edit</a> <a href={% url survey-delete slug=survey.slug %}>Delete</a> Transfer | Publish</td>
+    </tr>
     {% endfor %}
 </table>
 </fieldset>
