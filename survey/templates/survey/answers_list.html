@@ -29,7 +29,7 @@
     >{{ question.text }} <i>({{ question.answer_count }} {% if question.choices.count %}Vote{% else %}Answer{% endif %}{{ question.answer_count|pluralize:"s" }})</i></h2>
     <div id='results{{forloop.counter}}' class='question-results'>
 {% if question.choices.count %}
-    {% for choice in question.choices %}
+    {% for choice in question.choices.iterator %}
         <table border="0" cellpadding="0" cellspacing="0" class="bar">
             <caption class="barAnswer">{% ifequal question.qtype "I" %}<img src="{{ choice.text }}"/>{% else %}{{ choice.text }}{% endifequal %}</caption>
             <tr>

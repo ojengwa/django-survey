@@ -70,7 +70,7 @@ class ChoiceAnswer(BaseAnswerForm):
     def __init__(self, *args, **kwdargs):
         super(ChoiceAnswer, self).__init__(*args, **kwdargs)
         choices = [ (str(opt.id), opt.text)
-                    for opt in self.question._choices.all() ]
+                    for opt in self.question.choices.all() ]
         self.choices = choices
         self.choices_dict = dict(choices)
         self.fields['answer'].choices = choices
@@ -97,14 +97,14 @@ class ChoiceCheckbox(BaseAnswerForm):
     def __init__(self, *args, **kwdargs):
         super(ChoiceCheckbox, self).__init__(*args, **kwdargs)
         choices = [ (str(opt.id), opt.text)
-                    for opt in self.question._choices.all() ]
+                    for opt in self.question.choices.all() ]
         self.choices = choices
         print "choices in the checkbox list : ", choices
         self.choices_dict = dict(choices)
         self.fields['answer'].choices = choices
         print "##self.fields",self.fields
     def clean_answer(self):
-        
+
         keys = self.cleaned_data['answer']
         print "Choice Checkbox clean answer : ", keys
         if not keys and self.fields['answer'].required:
@@ -126,7 +126,7 @@ class ChoiceCheckbox(BaseAnswerForm):
             ans.text = text
             if commit: ans.save()
             ans_list.append(ans)
-        return ans_list 
+        return ans_list
 
 ## each question gets a form with one element, determined by the type
 ## for the answer.
@@ -159,12 +159,12 @@ class SurveyForm(ModelForm):
             raise ValidationError, _('The title of the survey must be unique.')
         return self.cleaned_data
 
-        
+
 class QuestionForm(ModelForm):
     class Meta:
         model= Question
         exclude = ("survey")
-        
+
 class ChoiceForm(ModelForm):
     class Meta:
         model = Choice

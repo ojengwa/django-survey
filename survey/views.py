@@ -74,7 +74,6 @@ def survey_detail(request, slug):
         return _survey_redirect(request, survey)
     # if the survey is restricted to authentified user redirect
     # annonymous user to the login page
-    print "request.user : %s"%request.user
     if survey.restricted and str(request.user) == "AnonymousUser":
         return HttpResponseRedirect(reverse("auth_login")+"?next=%s" % request.path)
     if request.POST and not hasattr(request, 'session'):
@@ -110,10 +109,10 @@ def survey_edit(request,slug):
 
 @login_required()
 def survey_add(request):
-    
+
     if request.method == "POST":
         request_post = request.POST.copy()
-        survey_form = SurveyForm(request_post) 
+        survey_form = SurveyForm(request_post)
         if survey_form.is_valid():
             new_survey = survey_form.save(commit=False)
             new_survey.created_by =  request.user
@@ -121,7 +120,7 @@ def survey_add(request):
             new_survey.slug = slugify(new_survey.title)
             new_survey.save()
             return HttpResponseRedirect(reverse("surveys-editable"))
-                
+
     else:
         survey_form = SurveyForm()
     return render_to_response('survey/survey_add.html',
@@ -148,7 +147,7 @@ def question_add(request,survey_slug):
     survey = get_object_or_404(Survey, slug=survey_slug)
     if request.method == "POST":
         request_post = request.POST.copy()
-        question_form = QuestionForm(request_post) 
+        question_form = QuestionForm(request_post)
         if question_form.is_valid():
             new_question = question_form.save(commit=False)
             new_question.survey = survey
@@ -165,10 +164,10 @@ def question_add(request,survey_slug):
 
 @login_required()
 def choice_add(request,question_id):
-    question = get_object_or_404(Question.objects.get(id=question_id))
+    question = get_object_or_404(Question, id=question_id)
     if request.method == "POST":
         request_post = request.POST.copy()
-        choice_form = ChoiceForm(request_post) 
+        choice_form = ChoiceForm(request_post)
         if choice_form.is_valid():
             new_choice = choice_form.save(commit=False)
             new_choice.question = question

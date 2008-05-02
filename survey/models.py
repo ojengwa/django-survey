@@ -1,6 +1,6 @@
 """Survey Models
 """
-from datetime import *
+import datetime
 
 from django.db import models
 from django.conf import settings
@@ -64,13 +64,13 @@ class Survey(models.Model):
         if not self.visible: return False
         value = cache.get(self._cache_name)
         if value is not None: return value
-        now = datetime.now()
+        now = datetime.datetime.now()
         if self.opens >= now:
             value = False
             duration = (now - self.opens).seconds
         elif self.closes >= now:
             value = True
-            duration = (self.closes - now).seconds
+            duration = (self.opens - now).seconds
         else:
             value = False
             duration = 60*60*24*31
@@ -94,32 +94,35 @@ class Survey(models.Model):
     def answer_count(self):
         if hasattr(self, '_answer_count'):
             return self._answer_count
-        self._answer_count = sum(q.answer_count for q in self.questions)
+        self._answer_count = sum(q.answer_count for q in self.questions.iterator())
         return self._answer_count
 
     @property
     def interview_count(self):
+        # NOTSURE: Do we realy need this optimisation?
         if hasattr(self, '_interview_count'):
             return self._interview_count
         self._interview_count = len(Answer.objects.filter(
             question__survey=self.id).values('interview_uuid').distinct())
         return self._interview_count
-    
+
     @property
     def session_key_count(self):
-        if hasattr(self, 'session_key_count'):
+        # NOTSURE: Do we realy need this optimisation?
+        if hasattr(self, '_session_key_count'):
             return self._submission_count
         self._submission_count = len(Answer.objects.filter(
             question__survey=self.id).values('session_key').distinct())
         return self._submission_count
 
+
     def has_answers_from(self, session_key):
         return bool(
             Answer.objects.filter(session_key__exact=session_key.lower(),
             question__survey__id__exact=self.id).distinct().count())
-    
-    
-    
+
+
+
     def __unicode__(self):
         return u' - '.join([self.slug, self.title])
 
@@ -129,7 +132,7 @@ class Survey(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('survey', (), {'slug': self.slug })
+        return ('survey-detail', (), {'slug': self.slug })
 
     def save(self):
         res = super(Survey, self).save()
@@ -158,13 +161,13 @@ class Question(models.Model):
                               upload_to= "dj_survey/question" + "/%Y/%m/%d/",
                               null=True, blank= True, core=False)
     # Define if the user must select at least 'choice_num_min' number of
-    # choices and at most 'choice_num_max' 
+    # choices and at most 'choice_num_max'
     choice_num_min = models.IntegerField(_("minimun number of choices"),
                                          null=True, blank=True,)
     choice_num_max = models.IntegerField(_("maximum number of choices"),
                                          null=True, blank=True,)
     # TODO: Modify the forms to respect the style defined by this attr (html,css)
-    qstyle = models.TextField(_("Html Style"),null=True, blank=True) 
+    qstyle = models.TextField(_("Html Style"),null=True, blank=True)
     ## model validation for requiring choices.
 
     @property
@@ -173,7 +176,7 @@ class Question(models.Model):
             return self._answer_count
         self._answer_count = self.answers.count()
         return self._answer_count
-    
+
 
     def __unicode__(self):
         return u' - '.join([self.survey.slug, self.text])
@@ -192,21 +195,12 @@ class Question(models.Model):
 
     # TODO: add this a fallback to this optimisation with django ORM.
     @property
-    def choices(self):
-        return self._choices.extra(
-            select={
-                '_count':
-                    'SELECT COUNT(*) '
-                    'FROM "survey_answer" '
-                    'WHERE ("survey_answer"."text" = "survey_choice"."text" '
-                    '       AND "survey_answer"."question_id" = '
-                    '           "survey_choice"."question_id")'
-            },
-        )
+    def choice_count(self):
+        return self.choices.count()
 
 class Choice(models.Model):
     ## validate question is of proper qtype
-    question = models.ForeignKey(Question, related_name='_choices',
+    question = models.ForeignKey(Question, related_name='choices',
                                  verbose_name=_('question'))
     text = models.CharField(_('choice text'), max_length=500, core=True)
     # TODO: Add a button or check box to remove the file. There are several
@@ -248,12 +242,12 @@ class Answer(models.Model):
     submission_date = models.DateTimeField(auto_now=True)
     # UUID is used to calculate the number of interviews
     interview_uuid = models.CharField(_("Interview uniqe identifier"),max_length=36)
-    
+
 
     class Admin:
         list_display = ('interview_uuid','question','user', 'submission_date',
                         'session_key', 'text')
-        
+
         #list_filter = ('question__survey',)
         search_fields = ('text',)
         list_select_related=True
