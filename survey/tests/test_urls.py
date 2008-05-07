@@ -38,9 +38,23 @@ Add a survey::
 >>> response.content.find("test survey addition") > -1
 True
 
+Update a survey::
+>>> response =  c.post("/survey/update/test-survey-addition/",
+... {"title":"test survey update",
+... "opens":"2000-12-12 12:12:12",
+... "closes":"2099-01-12 12:12:12",
+... "visible":"on", "public":"on","allows_multiple_interviews":"on"})
+>>> response.status_code
+302
+>>> response = c.get("/survey/editable/")
+>>> response.content.find("test survey update") > -1
+True
+
+
+
 Add a question with a radio list representation::
 
->>> response =  c.post("/survey/question/add/test-survey-addition/",
+>>> response =  c.post("/survey/question/add/test-survey-update/",
 ... {"qtype":"R","required":"on",
 ... "text" : "test question radio list"})
 >>> response.status_code
@@ -60,22 +74,22 @@ TODO: Remove the magic number 3, it comes from the question_id previously added
 
 Add an interview ::
 
->>> response = c.get("/survey/detail/test-survey-addition/")
+>>> response = c.get("/survey/detail/test-survey-update/")
 >>> response.status_code
 200
->>> response = c.post("/survey/detail/test-survey-addition/",
+>>> response = c.post("/survey/detail/test-survey-update/",
 ... {"2_3-answer":4})
 >>> response.status_code
 302
->>> response = c.post("/survey/detail/test-survey-addition/",
+>>> response = c.post("/survey/detail/test-survey-update/",
 ... {"2_3-answer":4})
 >>> response.status_code
 302
->>> response = c.post("/survey/detail/test-survey-addition/",
+>>> response = c.post("/survey/detail/test-survey-update/",
 ... {"2_3-answer":3})
 >>> response.status_code
 302
->>> response = c.get("/survey/answers/test-survey-addition/")
+>>> response = c.get("/survey/answers/test-survey-update/")
 >>> response.status_code
 200
 >>> response.content.find("33%")>-1
@@ -83,12 +97,34 @@ True
 >>> response.content.find("67%")>-1
 True
 
+Update a question ::
+
+>>> response = c.post("/survey/question/update/test-survey-update/3/",
+... {"qtype":"R","required":"on",
+... "text" : "test question radio list -- modified"})
+>>> response.status_code
+302
+>>> response = c.get("/survey/detail/test-survey-update/")
+>>> response.content.find("test question radio list -- modified") > -1
+True
+
+Update a choice::
+
+>>> response = c.post("/survey/choice/update/3/3/",
+... {"text": "may be"})
+>>> response.status_code
+302
+>>> response = c.get("/survey/detail/test-survey-update/")
+>>> response.content.find("may be") > -1
+True
+
+
 Delete a survey ::
->>> response =  c.post("/survey/delete/test-survey-addition/")
+>>> response =  c.post("/survey/delete/test-survey-update/")
 >>> response.status_code
 302
 >>> response = c.get("/survey/editable/")
->>> response.content.find("test survey addition") == -1
+>>> response.content.find("test survey update") == -1
 True
 
 

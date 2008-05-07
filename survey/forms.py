@@ -155,8 +155,13 @@ class SurveyForm(ModelForm):
         exclude = ("created_by","editable_by","slug")
     def clean(self):
         title_slug = slugify(self.cleaned_data.get("title"))
-        if not len(Survey.objects.filter(slug=title_slug))==0:
-            raise ValidationError, _('The title of the survey must be unique.')
+        if not hasattr(self,"instance"):
+            if not len(Survey.objects.filter(slug=title_slug))==0:
+                raise ValidationError, _('The title of the survey must be unique.')
+        elif self.instance.title != self.cleaned_data.get("title"):
+            if not len(Survey.objects.filter(slug=title_slug))==0:
+                raise ValidationError, _('The title of the survey must be unique.')
+
         return self.cleaned_data
 
 

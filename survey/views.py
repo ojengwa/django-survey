@@ -13,7 +13,7 @@ from django.views.generic.list_detail import object_list
 from django.views.generic.create_update import delete_object
 
 from forms import forms_for_survey, SurveyForm, QuestionForm, ChoiceForm
-from models import Survey, Answer, Question
+from models import Survey, Answer, Question, Choice
 from datetime import datetime
 
 def _survey_redirect(request, survey):
@@ -109,7 +109,6 @@ def survey_edit(request,slug):
 
 @login_required()
 def survey_add(request):
-
     if request.method == "POST":
         request_post = request.POST.copy()
         survey_form = SurveyForm(request_post)
@@ -121,8 +120,33 @@ def survey_add(request):
             new_survey.save()
             return HttpResponseRedirect(reverse("surveys-editable"))
 
+
     else:
         survey_form = SurveyForm()
+    return render_to_response('survey/survey_add.html',
+                              {'title': _("Add a survey"),
+                               'form' : survey_form},
+                              context_instance=RequestContext(request))
+
+@login_required()
+def survey_update(request, survey_slug):
+    if request.method == "POST":
+        request_post = request.POST.copy()
+        survey = get_object_or_404(Survey, slug=survey_slug)
+        survey_form = SurveyForm(instance=survey,data=request_post)
+        if survey_form.is_valid():
+            new_survey = survey_form.save(commit=False)
+            new_survey.created_by =  request.user
+            new_survey.editable_by = request.user
+            new_survey.slug = slugify(new_survey.title)
+            new_survey.save()
+            return HttpResponseRedirect(reverse("surveys-editable"))
+
+
+    else:
+        survey = get_object_or_404(Survey, slug=survey_slug)
+        print "survey : ",survey
+        survey_form = SurveyForm(instance=survey)
     return render_to_response('survey/survey_add.html',
                               {'title': _("Add a survey"),
                                'form' : survey_form},
@@ -163,8 +187,32 @@ def question_add(request,survey_slug):
                               context_instance=RequestContext(request))
 
 @login_required()
+def question_update(request,survey_slug,question_id):
+    survey = get_object_or_404(Survey, slug=survey_slug)
+    question =  get_object_or_404(Question,id=question_id)
+    if question not in survey.questions.iterator():
+        raise Http404()
+
+    if request.method == "POST":
+        request_post = request.POST.copy()
+        question_form = QuestionForm(instance=question,data=request_post)
+        if question_form.is_valid():
+            new_question = question_form.save(commit=False)
+            new_question.survey = survey
+            new_question.save()
+            return HttpResponseRedirect(reverse("survey-edit",None,(),
+                                                {"slug":survey_slug}))
+    else:
+        question_form = QuestionForm(instance=question)
+    return render_to_response('survey/question_add.html',
+                              {'title': _("Update question"),
+                               'form' : question_form},
+                              context_instance=RequestContext(request))
+
+@login_required()
 def choice_add(request,question_id):
     question = get_object_or_404(Question, id=question_id)
+
     if request.method == "POST":
         request_post = request.POST.copy()
         choice_form = ChoiceForm(request_post)
@@ -177,7 +225,29 @@ def choice_add(request,question_id):
     else:
         choice_form = ChoiceForm()
     return render_to_response('survey/choice_add.html',
-                              {'title': _("Add a question"),
+                              {'title': _("Add a choice"),
+                               'form' : choice_form},
+                              context_instance=RequestContext(request))
+
+@login_required()
+def choice_update(request,question_id, choice_id):
+    question = get_object_or_404(Question, id=question_id)
+    choice = get_object_or_404(Choice, id=choice_id)
+    if choice not in question.choices.iterator():
+        raise Http404()
+    if request.method == "POST":
+        request_post = request.POST.copy()
+        choice_form = ChoiceForm(instance=choice,data=request_post)
+        if choice_form.is_valid():
+            new_choice = choice_form.save(commit=False)
+            new_choice.question = question
+            new_choice.save()
+            return HttpResponseRedirect(reverse("survey-edit",None,(),
+                                                {"slug":question.survey.slug}))
+    else:
+        choice_form = ChoiceForm(instance=choice)
+    return render_to_response('survey/choice_add.html',
+                              {'title': _("Update choice"),
                                'form' : choice_form},
                               context_instance=RequestContext(request))
 
