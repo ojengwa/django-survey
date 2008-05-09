@@ -55,6 +55,18 @@ def _survey_redirect(request, survey):
                               {'survey': survey, 'title': _('Thank You')},
                               context_instance=RequestContext(request))
 
+
+# This is a fallback method for Python<2.5
+# taken from: http://docs.python.org/lib/built-in-funcs.html
+try:
+    all((0,0,))
+except:
+    def all(iterable):
+            for element in iterable:
+                if not element:
+                    return False
+            return True
+
 def survey_detail(request, slug):
     """
 
