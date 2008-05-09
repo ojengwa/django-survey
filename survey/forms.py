@@ -145,7 +145,11 @@ def forms_for_survey(survey, request):
     session_key = request.session.session_key.lower()
     login_user = request.user
     random_uuid = uuid.uuid4().hex
-    post = request.POST if request.POST else None # bug in newforms
+    # peschler: Is this inline if a Python2.5 only feature?
+    #post = request.POST if request.POST else None # bug in newforms
+    post = None
+    if request.POST:
+        post = request.POST    
     return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post)
             for q in survey.questions.all() ]
 
