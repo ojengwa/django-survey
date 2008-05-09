@@ -23,8 +23,7 @@ QTYPE_CHOICES = (
 class Survey(models.Model):
 
     title   = models.CharField(_('survey title'), max_length=80)
-    slug    = models.SlugField(_('slug'),
-                            prepopulate_from=("title",), unique=True)
+    slug    = models.SlugField(_('slug'), unique=True)
     description= models.TextField(verbose_name=_("description"),
                             help_text=_("This field appears on the public web\
                                         site and should give an overview to the \
@@ -124,11 +123,8 @@ class Survey(models.Model):
 
 
     def __unicode__(self):
-        return u' - '.join([self.slug, self.title])
-
-    class Admin:
-        list_display = ('__unicode__', 'visible', 'public',
-                        'opens', 'closes', 'open')
+        return self.title
+        #return u' - '.join([self.slug, self.title])
 
     @models.permalink
     def get_absolute_url(self):
@@ -144,7 +140,7 @@ class Survey(models.Model):
         if self.public: return True
         if user.is_anonymous(): return False
         return user.has_perm('survey.view_answers')
-
+                       
 
 class Question(models.Model):
     survey = models.ForeignKey(Survey, related_name='questions',
@@ -179,24 +175,20 @@ class Question(models.Model):
 
 
     def __unicode__(self):
-        return u' - '.join([self.survey.slug, self.text])
+        return u' - '.join([self.text])
 
     class Meta:
         unique_together = (('survey', 'text'),)
         order_with_respect_to='survey'
         ordering = ('survey', 'order')
 
-    class Admin:
-        list_select_related = True
-        list_filter = ('survey', 'qtype')
-        list_display_links = ('text',)
-        list_display = ('survey', 'text', 'qtype', 'required')
-        search_fields = ('text',)
-
     # TODO: add this a fallback to this optimisation with django ORM.
     @property
     def choice_count(self):
         return self.choices.count()
+
+
+    
 
 class Choice(models.Model):
     ## validate question is of proper qtype
@@ -211,8 +203,9 @@ class Choice(models.Model):
 
     order = models.IntegerField(verbose_name = _("order"),
                                 null=True, blank=True, core=True)
-    class Admin:
-        pass
+    #class Admin:
+    #    pass
+    
     @property
     def count(self):
         if hasattr(self, '_count'):
@@ -227,7 +220,8 @@ class Choice(models.Model):
     class Meta:
         unique_together = (('question', 'text'),)
         order_with_respect_to='question'
-        ordering = ('question', 'order')
+        ordering = ('question', 'order')    
+
 
 class Answer(models.Model):
     user = models.ForeignKey(User, related_name='answers',
@@ -242,16 +236,91 @@ class Answer(models.Model):
     submission_date = models.DateTimeField(auto_now=True)
     # UUID is used to calculate the number of interviews
     interview_uuid = models.CharField(_("Interview uniqe identifier"),max_length=36)
-
-
-    class Admin:
-        list_display = ('interview_uuid','question','user', 'submission_date',
-                        'session_key', 'text')
-
-        #list_filter = ('question__survey',)
-        search_fields = ('text',)
-        list_select_related=True
+        
     class Meta:
         # unique_together = (('question', 'session_key'),)
         permissions = (("view_answers",     "Can view survey answers"),
                        ("view_submissions", "Can view survey submissions"))
+
+
+# TODO: Refactor out admin options and registration to dedicated admin file.    
+
+from django.contrib import admin
+class ChoiceInline(admin.TabularInline):
+    """
+    A newforms-admin inline option class for the ``Choice`` model.
+    """
+    model = Choice
+    extra = 1
+    fields = ('text', 'order',)
+    #template = 'admin/survey/survey/edit_inline/tabular.html'
+
+class AnswerInline(admin.TabularInline):
+    """
+    A newforms-admin inline option class for the ``Answer`` model.
+    """
+    model = Answer
+    extra = 1
+    fields = ('text',)
+
+class QuestionOptions(admin.ModelAdmin):
+    """
+    A newforms-admin options class for the ``Question`` model.
+    """
+    list_select_related = True
+    list_filter = ('survey', 'qtype')
+    #filter_horizontal = ('survey',)
+    list_display_links = ('text',)
+    list_display = ('survey', 'text', 'qtype', 'required')
+    search_fields = ('text',)
+    inlines = [ChoiceInline, AnswerInline]
+    
+class QuestionInline(admin.TabularInline):
+    """
+    A newforms-admin inline option class for the ``Question`` model.
+    """    
+    model = Question
+    extra = 1
+    fields = ('order',)
+    template = 'admin/survey/survey/edit_inline/tabular.html'
+
+class SurveyOptions(admin.ModelAdmin):
+    """
+    A newforms-admin options class for the ``Survey`` model.
+    """
+    prepopulated_fields = {'slug': ('title',)}
+    list_display = ('__unicode__', 'visible', 'public',
+                        'opens', 'closes', 'open')
+    inlines = [QuestionInline]
+
+class AnswerOptions(admin.ModelAdmin):
+    """
+    A newforms-admin options class for the ``Answer`` model.
+    """
+    list_display = ('interview_uuid','question','user', 'submission_date',
+                    'session_key', 'text')
+    #list_filter = ('question__survey',)
+    search_fields = ('text',)
+    list_select_related=True
+
+# The try/catch blocks are there to supress the ``AlreadyRegistered`` warning.
+try:
+    admin.site.register(Question, QuestionOptions)
+except:
+    pass
+
+try:
+    admin.site.register(Survey, SurveyOptions)
+except:
+    pass
+
+try:
+    admin.site.register(Answer, AnswerOptions)
+except:
+    pass
+
+try:
+    admin.site.register(Choice)
+except:
+    pass
+
