@@ -83,7 +83,7 @@ class Survey(models.Model):
 
     @property
     def status(self):
-        if not self.visible: return _('')
+        if not self.visible: return _(' ')
         if self.open: return _('open')
         if datetime.now() < self.opens:
             return unicode(_('opens ')) + datefilter(self.opens)
@@ -141,6 +141,10 @@ class Survey(models.Model):
         if user.is_anonymous(): return False
         return user.has_perm('survey.view_answers')
                        
+    class Meta:                       
+        verbose_name = _('Survey')
+        verbose_name_plural = _('Surveys')
+                       
 
 class Question(models.Model):
     survey = models.ForeignKey(Survey, related_name='questions',
@@ -148,7 +152,7 @@ class Question(models.Model):
     qtype = models.CharField(_('question type'), max_length=2,
                                 choices=QTYPE_CHOICES)
     required = models.BooleanField(_('required'), default=True)
-    text     = models.TextField(_('question text'), core=True)
+    text = models.TextField(_('question text'), core=True)
     order = models.IntegerField(verbose_name = _("order"),
                                 null=True, blank=True, core=True)
     # TODO: Add a button or check box to remove the file. There are several
@@ -178,9 +182,20 @@ class Question(models.Model):
         return u' - '.join([self.text])
 
     class Meta:
-        unique_together = (('survey', 'text'),)
+        verbose_name = _('Question')
+        verbose_name_plural = _('Questions')
+        # PE: When using unique_together the table creation fails if MySQL is
+        # used:
+        # _mysql_exceptions.OperationalError: (1170, "BLOB/TEXT column 'text' used in key specification without a key length")
+        # See http://code.djangoproject.com/ticket/2495
+        # For now deactivate unique_together
+        # unique_together = (('survey', 'text'),)
         order_with_respect_to='survey'
         ordering = ('survey', 'order')
+        # PE: Added translation hooks for model names.
+        verbose_name = _('Question')
+        verbose_name_plural = _('Questions')
+        
 
     # TODO: add this a fallback to this optimisation with django ORM.
     @property
@@ -193,7 +208,7 @@ class Question(models.Model):
 class Choice(models.Model):
     ## validate question is of proper qtype
     question = models.ForeignKey(Question, related_name='choices',
-                                 verbose_name=_('question'))
+                                 verbose_name=_('question'))    
     text = models.CharField(_('choice text'), max_length=500, core=True)
     # TODO: Add a button or check box to remove the file. There are several
     # recipes floating on internet. I like the one with a custom widget
@@ -218,9 +233,12 @@ class Choice(models.Model):
         return self.text
 
     class Meta:
-        unique_together = (('question', 'text'),)
+        # PE: Deactivated unique_together for now. See details at Question.
+        # unique_together = (('question', 'text'),)
         order_with_respect_to='question'
-        ordering = ('question', 'order')    
+        ordering = ('question', 'order')
+        verbose_name = _('Choice')
+        verbose_name_plural = _('Choices')
 
 
 class Answer(models.Model):
@@ -232,7 +250,7 @@ class Answer(models.Model):
                                  editable=False)
     ## sessions expire, survey results do not, so keep the key.
     session_key = models.CharField(_('session key'), max_length=40)
-    text = models.TextField(_('anwser text'))
+    text = models.TextField(_('anwser text'), max_length=2000)
     submission_date = models.DateTimeField(auto_now=True)
     # UUID is used to calculate the number of interviews
     interview_uuid = models.CharField(_("Interview uniqe identifier"),max_length=36)
@@ -241,6 +259,8 @@ class Answer(models.Model):
         # unique_together = (('question', 'session_key'),)
         permissions = (("view_answers",     "Can view survey answers"),
                        ("view_submissions", "Can view survey submissions"))
+        verbose_name = _('Answer')
+        verbose_name_plural = _('Answers')
 
 
 # TODO: Refactor out admin options and registration to dedicated admin file.    
@@ -251,9 +271,9 @@ class ChoiceInline(admin.TabularInline):
     A newforms-admin inline option class for the ``Choice`` model.
     """
     model = Choice
-    extra = 1
+    extra = 2
     fields = ('text', 'order',)
-    #template = 'admin/survey/survey/edit_inline/tabular.html'
+    template = 'admin/survey/choice/edit_inline_tabular.html'
 
 class AnswerInline(admin.TabularInline):
     """
@@ -281,8 +301,8 @@ class QuestionInline(admin.TabularInline):
     """    
     model = Question
     extra = 1
-    fields = ('order',)
-    template = 'admin/survey/survey/edit_inline/tabular.html'
+    fields = ('text', 'order',)   
+    template = 'admin/survey/question/edit_inline_tabular.html'
 
 class SurveyOptions(admin.ModelAdmin):
     """
@@ -303,6 +323,12 @@ class AnswerOptions(admin.ModelAdmin):
     search_fields = ('text',)
     list_select_related=True
 
+class ChoiceOptions(admin.ModelAdmin):
+    list_display = ('text','question',)
+    search_fields = ('text',)
+    list_filter = ('question',)
+    
+
 # The try/catch blocks are there to supress the ``AlreadyRegistered`` warning.
 try:
     admin.site.register(Question, QuestionOptions)
@@ -320,7 +346,7 @@ except:
     pass
 
 try:
-    admin.site.register(Choice)
+    admin.site.register(Choice, ChoiceOptions)
 except:
     pass
 
