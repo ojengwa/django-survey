@@ -41,7 +41,7 @@ input[type="radio"] { vertical-align: top; }
             <td>
                 <a href='{% url question-update survey_slug=survey.slug, question_id=question.id %}'>{% trans "Update" noop %}</a>
                 <a href='{% url question-delete survey_slug=survey.slug, question_id=question.id %}'>{% trans "Delete" noop %}</a>
-                <a href='{% url choice-add question_id=question.id %}>{% trans "Add a choice" noop %}'</a>
+                <a href='{% url choice-add question_id=question.id %}'>{% trans "Add a choice" noop %}</a>
             </td>
         </tr>
         {% for choice in question.choices.all %}
