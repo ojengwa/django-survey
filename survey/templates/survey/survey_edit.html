@@ -1,14 +1,65 @@
-{% extends "survey/base.html" %}{% load i18n %}
+{% extends "survey/base.html" %}
+{% load i18n %}
 {% block styles %}
 <style type="text/css">
 input[type="radio"] { vertical-align: top; }
 </style>
 {% endblock %}
 {% block content %}
-<h1>{{ title }}</h1>
+<h1>{{ survey.title }}</h1>
+<ul class="object-tools"><li><a href='{% url survey-detail slug=survey.slug %}' class="addlink">{% trans "View Online" noop %}</a></li></ul>
+<table style="width: 100%">
+    <thead>
+        <th>{% trans "Object type" noop %}</th><th>{% trans "order" noop %}</th><th>{% trans "type" noop %}</th>
+        <th>{% trans "Object" noop %}</th><th>{% trans "Actions" noop %}</th>
+    </thead>
+    <tr class="{% cycle row1,row2 %}">
+        <td>{% trans "Survey" noop %}</td>
+        <td>-</td>
+        <td>-</td>
+        <td>
 
-<form method="post" class="focus-input" action="">
-{% for question in survey.forms %}{{ question.as_p }}{% endfor %}
-<div class="submit-row"><input type="submit" value="{% trans 'Submit' %}" class="default" name="__vote" /></div>
-</form>
+            <p> {{ survey.description }}</p>
+            <p> {{ survey.opens }}</p>
+            <p> {{ survey.closes }}</p>
+        </td>
+        <td>
+            <a href='{% url survey-update survey_slug=survey.slug %}'>{% trans "Update" noop %}</a>
+            <a href='{% url survey-delete slug=survey.slug %}'>{% trans "Delete" noop %}</a>
+            <a href='{% url question-add survey_slug=survey.slug %}'>{% trans "Add a question" noop %}</a>
+        </td>
+    </tr>
+    {% for question in survey.questions.all %}
+        <tr>
+            <td>{% trans "Question" noop %}</td>
+            <td>{{ question.order }}</td>
+            <td>{{ question.get_qtype_display }}</td>
+            <td>
+                <p>{{ question.text }}</p>
+                <p>{{ question.qstyle }}</p>
+            </td>
+            <td>
+                <a href='{% url question-update survey_slug=survey.slug, question_id=question.id %}'>{% trans "Update" noop %}</a>
+                <a href='{% url question-delete survey_slug=survey.slug, question_id=question.id %}'>{% trans "Delete" noop %}</a>
+                <a href='{% url choice-add question_id=question.id %}>{% trans "Add a choice" noop %}'</a>
+            </td>
+        </tr>
+        {% for choice in question.choices.all %}
+            <tr>
+                <td>{% trans "choice" noop %}</td>
+                <td>{{ choice.order }}</td>
+                <td>-</td>
+                <td>
+                    <p>{{ choice.text }}</p>
+                </td>
+                <td>
+                    <a href='{% url choice-update question_id=question.id,choice_id=choice.id %}'>{% trans "Update" noop %}</a>
+                    <a href='{% url choice-delete survey_slug=survey.slug, choice_id=choice.id %}'>{% trans "Delete" noop %}</a>
+                </td>
+            </tr>
+        {% endfor %}
+    {% endfor %}
+
+</table>
+
 {% endblock %}

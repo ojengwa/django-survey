@@ -7,8 +7,8 @@ from models import Survey
 from views import answers_list, answers_detail,\
                 survey_detail, survey_edit, survey_add,\
                 editable_survey_list, survey_delete, survey_update,\
-                question_add, question_update,\
-                choice_add, choice_update
+                question_add, question_update,question_delete,\
+                choice_add, choice_update, choice_delete
 
 
 urlpatterns = patterns('',
@@ -35,8 +35,10 @@ urlpatterns = patterns('',
 
     url(r'^question/add/(?P<survey_slug>[-\w]+)/$', question_add,   name='question-add'),
     url(r'^question/update/(?P<survey_slug>[-\w]+)/(?P<question_id>\d)/$', question_update,   name='question-update'),
+    url(r'^question/delete/(?P<survey_slug>[-\w]+)/(?P<question_id>\d)/$', question_delete,   name='question-delete'),
 
     url(r'^choice/add/(?P<question_id>\d)/$', choice_add,   name='choice-add'),
     url(r'^choice/update/(?P<question_id>\d)/(?P<choice_id>\d)/$', choice_update,   name='choice-update'),
+    url(r'^choice/delete/(?P<survey_slug>[-\w]+)/(?P<choice_id>\d)/$', choice_delete,   name='choice-delete'),
 
     )

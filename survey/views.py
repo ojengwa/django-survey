@@ -100,7 +100,7 @@ def survey_detail(request, slug):
 def survey_edit(request,slug):
     survey = get_object_or_404(Survey, slug=slug)
     return render_to_response('survey/survey_edit.html',
-                              {'survey': survey, 'title': survey.title},
+                              {'survey': survey},
                               context_instance=RequestContext(request))
 
 # TODO: Refactor the object add to avoid the code duplication.
@@ -140,7 +140,7 @@ def survey_update(request, survey_slug):
             new_survey.editable_by = request.user
             new_survey.slug = slugify(new_survey.title)
             new_survey.save()
-            return HttpResponseRedirect(reverse("surveys-editable"))
+            return HttpResponseRedirect(reverse("survey-edit",None,(),{"slug":survey_slug}))
 
 
     else:
@@ -160,7 +160,7 @@ def survey_delete(request,slug):
     request_post = request.POST.copy()
     return delete_object(request, slug=slug,
         **{"model":Survey,
-         "post_delete_redirect": "/survey/editable/",
+         "post_delete_redirect": reverse("surveys-editable"),
          "template_object_name":"survey",
          "login_required": True,
          'extra_context': {'title': _('Delete survey')}
@@ -210,6 +210,20 @@ def question_update(request,survey_slug,question_id):
                               context_instance=RequestContext(request))
 
 @login_required()
+def question_delete(request,survey_slug,question_id):
+    # TRICK: The following line does not have any logical explination
+    # except than working around a bug in FF. It has been suggested there
+    # http://groups.google.com/group/django-users/browse_thread/thread/e6c96ab0538a544e/0e01cdda3668dfce#0e01cdda3668dfce
+    request_post = request.POST.copy()
+    return delete_object(request, object_id=question_id,
+        **{"model":Question,
+         "post_delete_redirect": reverse("survey-edit",None,(), {"slug":survey_slug}),
+         "template_object_name":"question",
+         "login_required": True,
+         'extra_context': {'title': _('Delete question')}
+        })
+
+@login_required()
 def choice_add(request,question_id):
     question = get_object_or_404(Question, id=question_id)
 
@@ -250,6 +264,20 @@ def choice_update(request,question_id, choice_id):
                               {'title': _("Update choice"),
                                'form' : choice_form},
                               context_instance=RequestContext(request))
+
+@login_required()
+def choice_delete(request,survey_slug,choice_id):
+    # TRICK: The following line does not have any logical explination
+    # except than working around a bug in FF. It has been suggested there
+    # http://groups.google.com/group/django-users/browse_thread/thread/e6c96ab0538a544e/0e01cdda3668dfce#0e01cdda3668dfce
+    request_post = request.POST.copy()
+    return delete_object(request, object_id=choice_id,
+        **{"model":Choice,
+         "post_delete_redirect": reverse("survey-edit",None,(), {"slug":survey_slug}),
+         "template_object_name":"choice",
+         "login_required": True,
+         'extra_context': {'title': _('Delete choice')}
+        })
 
 @login_required()
 def editable_survey_list(request):

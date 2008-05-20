@@ -1,7 +1,10 @@
 {% extends "survey/base.html" %}
-{% block content %}{% load survey %}
+{% load i18n %}
+{% load survey %}
+{% block content %}
+
 <h1>Surveys</h1>
-<ul class="object-tools"><li><a href={% url survey-add %} class="addlink">Add survey</a></li></ul>
+<ul class="object-tools"><li><a href={% url survey-add %} class="addlink">{% trans "Add survey" noop %}</a></li></ul>
 <fieldset class="module">
 <table style="width: 100%">
     <thead><th>Survey</th><th>Status</th><th>Info</th><th>Actions</th></thead>
@@ -20,7 +23,7 @@
         {% endif %}
         {% if request|has_answered:survey %}You have <a href='{% url answers-detail slug=survey.slug,key=request.session.session_key %}'>completed</a> this survey.{% endif %}
         </td>
-        <td><a href={% url survey-edit slug=survey.slug %}>Edit</a> <a href={% url survey-delete slug=survey.slug %}>Delete</a> Transfer | Publish</td>
+        <td><a href={% url survey-edit slug=survey.slug %}>{% trans "Edit" noop %}</a> <a href={% url survey-delete slug=survey.slug %}>{% trans "Delete" noop %}</a> Transfer | Publish</td>
     </tr>
     {% endfor %}
 </table>
