@@ -94,8 +94,9 @@ def survey_detail(request, slug):
                               {'survey': survey, 'title': survey.title},
                               context_instance=RequestContext(request))
 
-# TODO: Write the view and template to edit a survey. Ideally it would a page
-# where the user can add delete move questions and choices. (ajax)
+# TODO: ajaxify this page (jquery) : add a date picker, ...
+# TODO: Fix the bug that make the questions and the choices unordered
+
 @login_required()
 def survey_edit(request,slug):
     survey = get_object_or_404(Survey, slug=slug)
