@@ -29,11 +29,12 @@ Add a survey::
 
 >>> response = c.post("/survey/add/",
 ... {"title":"test survey addition",
-... "opens":"2000-12-12 12:12:12",
-... "closes":"2099-12-12 12:12:12",
+... "opens_0":"2000-12-12", "opens_1":"12:12:12",
+... "closes_0":"2099-12-12", "closes_1":"12:12:12",
 ... "visible":"on", "public":"on","allows_multiple_interviews":"on"})
 >>> response.status_code
 302
+
 >>> response = c.get("/survey/editable/")
 >>> response.content.find("test survey addition") > -1
 True
@@ -41,8 +42,8 @@ True
 Update a survey::
 >>> response =  c.post("/survey/update/test-survey-addition/",
 ... {"title":"test survey update",
-... "opens":"2000-12-12 12:12:12",
-... "closes":"2099-01-12 12:12:12",
+... "opens_0":"2000-12-12", "opens_1":"12:12:12",
+... "closes_0":"2099-12-12", "closes_1":"12:12:12",
 ... "visible":"on", "public":"on","allows_multiple_interviews":"on"})
 >>> response.status_code
 302

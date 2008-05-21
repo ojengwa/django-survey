@@ -1,8 +1,9 @@
 from models import QTYPE_CHOICES, Answer, Survey, Question, Choice
 from django.newforms import BaseForm, Form, ValidationError
-from django.newforms import CharField, ChoiceField
+from django.newforms import CharField, ChoiceField, SplitDateTimeField
 from django.newforms import Textarea, TextInput, Select, RadioSelect,\
-                        CheckboxSelectMultiple, MultipleChoiceField
+                            CheckboxSelectMultiple, MultipleChoiceField,\
+                            SplitDateTimeWidget
 from django.newforms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
@@ -150,6 +151,10 @@ def forms_for_survey(survey, request):
             for q in survey.questions.all() ]
 
 class SurveyForm(ModelForm):
+    opens = SplitDateTimeField(widget=SplitDateTimeWidget(attrs={"class":"vDateField required"}),
+                               label=Survey._meta.get_field("opens").verbose_name)
+    closes = SplitDateTimeField(widget=SplitDateTimeWidget(attrs={"class":"vDateField required"}),
+                               label=Survey._meta.get_field("closes").verbose_name)
     class Meta:
         model = Survey
         exclude = ("created_by","editable_by","slug")

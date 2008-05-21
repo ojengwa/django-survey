@@ -26,9 +26,8 @@ class Survey(models.Model):
     slug    = models.SlugField(_('slug'),
                             prepopulate_from=("title",), unique=True)
     description= models.TextField(verbose_name=_("description"),
-                            help_text=_("This field appears on the public web\
-                                        site and should give an overview to the \
-                                        interviewee"), blank=True)
+                            help_text=_("This field appears on the public web site and should give an overview to the interviewee"),
+                            blank=True)
 
     ## Add validation on datetimes
     opens   = models.DateTimeField(_('survey starts accepting submissions on'))
@@ -42,8 +41,7 @@ class Survey(models.Model):
                                                      ,blank=True,default=True)
     template_name = models.CharField(_('template name'),max_length=150,
                                      null=True, blank=True,
-        help_text=_("This field is used to define a custom template\
-        Example: 'dj_survey/template/my_add_interview_forms.html'."))
+        help_text=_("This field is used to define a custom template (Example: 'dj_survey/template/my_add_interview_forms.html')."))
 
     # Control who can edit the survey
     # TODO: Plug this control in the view used to edit the survey
