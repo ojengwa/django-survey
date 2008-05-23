@@ -3,7 +3,7 @@ from django.newforms import BaseForm, Form, ValidationError
 from django.newforms import CharField, ChoiceField, SplitDateTimeField
 from django.newforms import Textarea, TextInput, Select, RadioSelect,\
                             CheckboxSelectMultiple, MultipleChoiceField,\
-                            SplitDateTimeWidget
+                            SplitDateTimeWidget,MultiWidget
 from django.newforms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
@@ -150,10 +150,40 @@ def forms_for_survey(survey, request):
     return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post)
             for q in survey.questions.all() ]
 
+class CustomDateWidget(TextInput):
+    #class Media:
+    #    js = (settings.ADMIN_MEDIA_PREFIX + "js/calendar.js",
+    #          settings.ADMIN_MEDIA_PREFIX + "js/admin/DateTimeShortcuts.js")
+
+    def __init__(self, attrs={}):
+        super(CustomDateWidget, self).__init__(attrs={'class': 'vDateField', 'size': '10'})
+
+class CustomTimeWidget(TextInput):
+    #class Media:
+    #    js = (settings.ADMIN_MEDIA_PREFIX + "js/calendar.js",
+    #          settings.ADMIN_MEDIA_PREFIX + "js/admin/DateTimeShortcuts.js")
+
+    def __init__(self, attrs={}):
+        super(CustomTimeWidget, self).__init__(attrs={'class': 'vTimeField', 'size': '8'})
+
+class CustomSplitDateTime(SplitDateTimeWidget):
+    """
+    A SplitDateTime Widget that has some admin-specific styling.
+    """
+    def __init__(self, attrs=None):
+        widgets = [CustomDateWidget, CustomTimeWidget]
+        # Note that we're calling MultiWidget, not SplitDateTimeWidget, because
+        # we want to define widgets.
+        MultiWidget.__init__(self, widgets, attrs)
+
+    def format_output(self, rendered_widgets):
+        return mark_safe(u'<p class="datetime">%s %s<br />%s %s</p>' % \
+            (_('Date:'), rendered_widgets[0], _('Time:'), rendered_widgets[1]))
+
 class SurveyForm(ModelForm):
-    opens = SplitDateTimeField(widget=SplitDateTimeWidget(attrs={"class":"vDateField required"}),
+    opens = SplitDateTimeField(widget=CustomSplitDateTime(),
                                label=Survey._meta.get_field("opens").verbose_name)
-    closes = SplitDateTimeField(widget=SplitDateTimeWidget(attrs={"class":"vDateField required"}),
+    closes = SplitDateTimeField(widget=CustomSplitDateTime(),
                                label=Survey._meta.get_field("closes").verbose_name)
     class Meta:
         model = Survey

@@ -1,8 +1,10 @@
 {% extends "survey/base.html" %}{% load i18n %}
 {% block scripts %}
-<script type="text/javascript" src="../../../jsi18n/"></script>
+<script type="text/javascript" src="/admin/jsi18n/"></script>
 <script type="text/javascript" src="/media/js/core.js"></script>
-<script type="text/javascript" src="/media/js/admin/RelatedObjectLookups.js"></script><script type="text/javascript" src="/media/js/urlify.js"></script><script type="text/javascript" src="/media/js/calendar.js"></script><script type="text/javascript" src="/media/js/admin/DateTimeShortcuts.js"></script>
+<script type="text/javascript" src="/media/js/calendar.js"></script>
+<script type="text/javascript" src="/media/js/admin/DateTimeShortcuts.js"></script>
+
 {% endblock %}
 {% block styles %}
 <link rel="stylesheet" type="text/css" href="/media/css/forms.css" />
@@ -15,8 +17,9 @@ input[type="radio"] { vertical-align: top; }
 
 <form method="post" class="focus-input" action="">
     <table>
-    {{form.as_table}}
+    {{form}}
     </table>
+
 <div class="submit-row"><input type="submit" value="{% trans 'Submit' %}" class="default" name="__AddSurvey" /></div>
 </form>
 {% endblock %}
