@@ -1,5 +1,6 @@
 {% extends "survey/base.html" %}
 {% load i18n %}
+{% load survey %}
 {% block styles %}
 <style type="text/css">
 input[type="radio"] { vertical-align: top; }
@@ -29,7 +30,7 @@ input[type="radio"] { vertical-align: top; }
             <a href='{% url question-add survey_slug=survey.slug %}'>{% trans "Add a question" noop %}</a>
         </td>
     </tr>
-    {% for question in survey.questions.all %}
+    {% for question in survey.questions.all|order_by:"order" %}
         <tr>
             <td>{% trans "Question" noop %}</td>
             <td>{{ question.order }}</td>
@@ -44,7 +45,7 @@ input[type="radio"] { vertical-align: top; }
                 <a href='{% url choice-add question_id=question.id %}'>{% trans "Add a choice" noop %}</a>
             </td>
         </tr>
-        {% for choice in question.choices.all %}
+        {% for choice in question.choices.all|order_by:"order" %}
             <tr>
                 <td>{% trans "choice" noop %}</td>
                 <td>{{ choice.order }}</td>

@@ -10,3 +10,8 @@ def has_answered(request, survey):
 @register.filter
 def can_view_answers(user, survey):
     return survey.answers_viewable_by(user)
+
+@register.filter_function
+def order_by(queryset, args):
+    args = [x.strip() for x in args.split(',')]
+    return queryset.order_by(*args)
