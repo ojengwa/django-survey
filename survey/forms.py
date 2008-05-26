@@ -4,9 +4,11 @@ from django.newforms import CharField, ChoiceField, SplitDateTimeField
 from django.newforms import Textarea, TextInput, Select, RadioSelect,\
                             CheckboxSelectMultiple, MultipleChoiceField,\
                             SplitDateTimeWidget,MultiWidget
+from django.newforms.forms import BoundField
 from django.newforms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.template import Context, loader
 from django.template.defaultfilters import slugify
 
 from itertools import chain
@@ -25,6 +27,18 @@ class BaseAnswerForm(Form):
         answer.label = question.text
         if not question.required:
             answer.help_text = unicode(_('(this question is optional)'))
+
+    def as_template(self):
+        "Helper function for fieldsting fields data from form."
+        bound_fields = [BoundField(self, field, name) for name, field in self.fields.items()]
+        c = Context(dict(form = self, bound_fields = bound_fields))
+        # TODO: check for template ... if template does not exist
+        # we could just get_template_from_string to some default
+        # or we could pass in the template name ... whatever we want
+        # import pdb; pdb.set_trace()
+        t = loader.get_template('newforms/form.html')
+        return t.render(c)
+
     def save(self, commit=True):
         if not self.cleaned_data['answer']:
             if self.fields['answer'].required:
@@ -70,8 +84,14 @@ class ChoiceAnswer(BaseAnswerForm):
 
     def __init__(self, *args, **kwdargs):
         super(ChoiceAnswer, self).__init__(*args, **kwdargs)
-        choices = [ (str(opt.id), opt.text)
-                    for opt in self.question.choices.all() ]
+        choices = []
+        for opt in self.question.choices.all():
+            if opt.get_image_url():
+                text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.get_image_url())
+            else:
+                text = opt.text
+            choices.append((str(opt.id),text))
+
         self.choices = choices
         self.choices_dict = dict(choices)
         self.fields['answer'].choices = choices
@@ -89,6 +109,7 @@ class ChoiceRadio(ChoiceAnswer):
 class ChoiceImage(ChoiceAnswer):
     def __init__(self, *args, **kwdargs):
         super(ChoiceImage, self).__init__(*args, **kwdargs)
+        #import pdb; pdb.set_trace()
         self.choices = [ (k,mark_safe('<img src="'+v+'"/>')) for k,v in self.choices ]
         self.fields['answer'].widget = RadioSelect(choices=self.choices)
 
@@ -97,17 +118,19 @@ class ChoiceCheckbox(BaseAnswerForm):
 
     def __init__(self, *args, **kwdargs):
         super(ChoiceCheckbox, self).__init__(*args, **kwdargs)
-        choices = [ (str(opt.id), opt.text)
-                    for opt in self.question.choices.all() ]
+        choices = []
+        for opt in self.question.choices.all():
+            if opt.get_image_url():
+                text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.get_image_url())
+            else:
+                text = opt.text
+            choices.append((str(opt.id),text))
         self.choices = choices
-        print "choices in the checkbox list : ", choices
         self.choices_dict = dict(choices)
         self.fields['answer'].choices = choices
-        print "##self.fields",self.fields
     def clean_answer(self):
 
         keys = self.cleaned_data['answer']
-        print "Choice Checkbox clean answer : ", keys
         if not keys and self.fields['answer'].required:
             raise ValidationError, _('This field is required.')
         for key in keys:

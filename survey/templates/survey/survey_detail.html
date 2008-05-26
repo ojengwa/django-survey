@@ -8,7 +8,9 @@ input[type="radio"] { vertical-align: top; }
 <h1>{{ title }}</h1>
 
 <form method="post" class="focus-input" action="">
-{% for question in survey.forms %}{{ question.as_p }}{% endfor %}
-<div class="submit-row"><input type="submit" value="{% trans 'Submit' %}" class="default" name="__vote" /></div>
+    {% for question_form in survey.forms %}
+        {{ question_form.as_template }}
+    {% endfor %}
+    <div class="submit-row"><input type="submit" value="{% trans 'Submit' %}" class="default" name="__vote" /></div>
 </form>
 {% endblock %}

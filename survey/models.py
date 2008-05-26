@@ -156,7 +156,7 @@ class Question(models.Model):
     # TODO: Add a button or check box to remove the file. There are several
     # recipes floating on internet. I like the one with a custom widget
     image = models.ImageField(verbose_name=_("image"),
-                              upload_to= "dj_survey/question" + "/%Y/%m/%d/",
+                              upload_to= "survey/images/questions" + "/%Y/%m/%d/",
                               null=True, blank= True, core=False)
     # Define if the user must select at least 'choice_num_min' number of
     # choices and at most 'choice_num_max'
@@ -204,7 +204,7 @@ class Choice(models.Model):
     # TODO: Add a button or check box to remove the file. There are several
     # recipes floating on internet. I like the one with a custom widget
     image = models.ImageField(verbose_name = _("image"),
-                              upload_to= "dj_survey/choice" + "/%Y/%m/%d/",
+                              upload_to= "survey/images/questions" + "/%Y/%m/%d/",
                               null=True ,blank= True)
 
     order = models.IntegerField(verbose_name = _("order"),
