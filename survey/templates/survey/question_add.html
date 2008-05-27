@@ -7,7 +7,11 @@ input[type="radio"] { vertical-align: top; }
 {% block content %}
 <h1>{{ title }}</h1>
 
-<form method="post" class="focus-input" action="">
+{% if question.image %}
+    <a href="{% url delete-image model_string=model_string,object_id=question.id %}">Delete Image</a>
+    <img src="{{ question.get_image_url }}" />
+{% endif %}
+<form enctype="multipart/form-data" method="post" class="focus-input" action="">
     {{form.as_p}}
 <div class="submit-row"><input type="submit" value="{% trans 'Submit' %}" class="default" name="__AddQuestion" /></div>
 </form>

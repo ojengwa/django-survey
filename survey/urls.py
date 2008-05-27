@@ -8,7 +8,7 @@ from views import answers_list, answers_detail,\
                 survey_detail, survey_edit, survey_add,\
                 editable_survey_list, survey_delete, survey_update,\
                 question_add, question_update,question_delete,\
-                choice_add, choice_update, choice_delete
+                choice_add, choice_update, choice_delete, delete_image
 
 
 urlpatterns = patterns('',
@@ -41,4 +41,5 @@ urlpatterns = patterns('',
     url(r'^choice/update/(?P<question_id>\d)/(?P<choice_id>\d)/$', choice_update,   name='choice-update'),
     url(r'^choice/delete/(?P<survey_slug>[-\w]+)/(?P<choice_id>\d)/$', choice_delete,   name='choice-delete'),
 
+    url(r'^delete_image/(?P<model_string>[-\w]+)/(?P<object_id>\d)/$', delete_image, name='delete-image'),
     )

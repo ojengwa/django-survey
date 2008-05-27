@@ -1,9 +1,12 @@
 from models import QTYPE_CHOICES, Answer, Survey, Question, Choice
+from django.conf import settings
 from django.newforms import BaseForm, Form, ValidationError
-from django.newforms import CharField, ChoiceField, SplitDateTimeField
+from django.newforms import CharField, ChoiceField, SplitDateTimeField,\
+                            CheckboxInput, BooleanField,FileInput,\
+                            FileField, ImageField
 from django.newforms import Textarea, TextInput, Select, RadioSelect,\
                             CheckboxSelectMultiple, MultipleChoiceField,\
-                            SplitDateTimeWidget,MultiWidget
+                            SplitDateTimeWidget,MultiWidget, MultiValueField
 from django.newforms.forms import BoundField
 from django.newforms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
@@ -221,7 +224,6 @@ class SurveyForm(ModelForm):
                 raise ValidationError, _('The title of the survey must be unique.')
 
         return self.cleaned_data
-
 
 class QuestionForm(ModelForm):
     class Meta:

@@ -191,6 +191,10 @@ class Question(models.Model):
         list_display = ('survey', 'text', 'qtype', 'required')
         search_fields = ('text',)
 
+    @models.permalink
+    def get_update_url(self):
+        return ('question-update', (), {'survey_slug': self.survey.slug,'question_id' :self.id  })
+
     # TODO: add this a fallback to this optimisation with django ORM.
     @property
     def choice_count(self):
@@ -211,6 +215,11 @@ class Choice(models.Model):
                                 null=True, blank=True, core=True)
     class Admin:
         pass
+
+    @models.permalink
+    def get_update_url(self):
+        return ('choice-update', (), {'question_id': self.question.id,'choice_id' :self.id  })
+
     @property
     def count(self):
         if hasattr(self, '_count'):

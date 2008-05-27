@@ -1,3 +1,4 @@
+from django.db import models
 from django.db.models import Q
 from django.conf import settings
 from django.core.cache import cache
@@ -15,6 +16,7 @@ from django.views.generic.create_update import delete_object
 from forms import forms_for_survey, SurveyForm, QuestionForm, ChoiceForm
 from models import Survey, Answer, Question, Choice
 from datetime import datetime
+import os
 
 def _survey_redirect(request, survey):
     """
@@ -172,7 +174,7 @@ def question_add(request,survey_slug):
     survey = get_object_or_404(Survey, slug=survey_slug)
     if request.method == "POST":
         request_post = request.POST.copy()
-        question_form = QuestionForm(request_post)
+        question_form = QuestionForm(data=request_post,files=request.FILES)
         if question_form.is_valid():
             new_question = question_form.save(commit=False)
             new_question.survey = survey
@@ -196,7 +198,9 @@ def question_update(request,survey_slug,question_id):
 
     if request.method == "POST":
         request_post = request.POST.copy()
-        question_form = QuestionForm(instance=question,data=request_post)
+        question_form = QuestionForm(instance=question,data=request_post,
+                                     files=request.FILES)
+
         if question_form.is_valid():
             new_question = question_form.save(commit=False)
             new_question.survey = survey
@@ -205,8 +209,11 @@ def question_update(request,survey_slug,question_id):
                                                 {"slug":survey_slug}))
     else:
         question_form = QuestionForm(instance=question)
+    #import pdb; pdb.set_trace()
     return render_to_response('survey/question_add.html',
                               {'title': _("Update question"),
+                               'question' : question,
+                               'model_string' : "Question",
                                'form' : question_form},
                               context_instance=RequestContext(request))
 
@@ -230,7 +237,7 @@ def choice_add(request,question_id):
 
     if request.method == "POST":
         request_post = request.POST.copy()
-        choice_form = ChoiceForm(request_post)
+        choice_form = ChoiceForm(data=request_post,files=request.FILES)
         if choice_form.is_valid():
             new_choice = choice_form.save(commit=False)
             new_choice.question = question
@@ -239,6 +246,7 @@ def choice_add(request,question_id):
                                                 {"slug":question.survey.slug}))
     else:
         choice_form = ChoiceForm()
+
     return render_to_response('survey/choice_add.html',
                               {'title': _("Add a choice"),
                                'form' : choice_form},
@@ -252,7 +260,8 @@ def choice_update(request,question_id, choice_id):
         raise Http404()
     if request.method == "POST":
         request_post = request.POST.copy()
-        choice_form = ChoiceForm(instance=choice,data=request_post)
+        choice_form = ChoiceForm(instance=choice,data=request_post,
+                                 files=request.FILES)
         if choice_form.is_valid():
             new_choice = choice_form.save(commit=False)
             new_choice.question = question
@@ -263,6 +272,8 @@ def choice_update(request,question_id, choice_id):
         choice_form = ChoiceForm(instance=choice)
     return render_to_response('survey/choice_add.html',
                               {'title': _("Update choice"),
+                               'choice' : choice,
+                               'model_string' : "Choice",
                                'form' : choice_form},
                               context_instance=RequestContext(request))
 
@@ -335,4 +346,21 @@ def answers_detail(request, slug, key):
     return render_to_response('survey/answers_detail.html',
         {'survey': survey, 'submission': answers,
          'title': survey.title + u' - ' + unicode(_('Submission'))},
+        context_instance=RequestContext(request))
+
+def delete_image(request, model_string,object_id):
+    model = models.get_model("survey", model_string)
+    object = get_object_or_404(model, id=object_id)
+    if object.image == None:
+        raise Http404('No image for the given object : %s ' %object)
+    if request.method == "POST":
+        request_post = request.POST.copy()
+        if os.path.isfile(object.get_image_filename()):
+            os.remove(object.get_image_filename())
+            object.image = None
+            object.save()
+            return HttpResponseRedirect(object.get_update_url())
+
+    return render_to_response('survey/image_confirm_delete.html',
+        {"object" : object},
         context_instance=RequestContext(request))
