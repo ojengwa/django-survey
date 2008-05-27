@@ -85,7 +85,7 @@ class ChoiceAnswer(BaseAnswerForm):
     def __init__(self, *args, **kwdargs):
         super(ChoiceAnswer, self).__init__(*args, **kwdargs)
         choices = []
-        for opt in self.question.choices.all():
+        for opt in self.question.choices.all().order_by("order"):
             if opt.get_image_url():
                 text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.get_image_url())
             else:
@@ -119,7 +119,7 @@ class ChoiceCheckbox(BaseAnswerForm):
     def __init__(self, *args, **kwdargs):
         super(ChoiceCheckbox, self).__init__(*args, **kwdargs)
         choices = []
-        for opt in self.question.choices.all():
+        for opt in self.question.choices.all().order_by("order"):
             if opt.get_image_url():
                 text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.get_image_url())
             else:
@@ -171,7 +171,7 @@ def forms_for_survey(survey, request):
     random_uuid = uuid.uuid4().hex
     post = request.POST if request.POST else None # bug in newforms
     return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post)
-            for q in survey.questions.all() ]
+            for q in survey.questions.all().order_by("order") ]
 
 class CustomDateWidget(TextInput):
     #class Media:
