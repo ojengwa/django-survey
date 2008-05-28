@@ -82,7 +82,7 @@ class Survey(models.Model):
 
     @property
     def status(self):
-        if not self.visible: return _('')
+        if not self.visible: return _('private')
         if self.open: return _('open')
         if datetime.now() < self.opens:
             return unicode(_('opens ')) + datefilter(self.opens)
