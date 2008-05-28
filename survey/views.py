@@ -1,3 +1,6 @@
+from datetime import datetime
+import os
+
 from django.db import models
 from django.db.models import Q
 from django.conf import settings
@@ -13,10 +16,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.list_detail import object_list
 from django.views.generic.create_update import delete_object
 
-from forms import forms_for_survey, SurveyForm, QuestionForm, ChoiceForm
-from models import Survey, Answer, Question, Choice
-from datetime import datetime
-import os
+from survey.forms import forms_for_survey, SurveyForm, QuestionForm, ChoiceForm
+from survey.models import Survey, Answer, Question, Choice
+
 
 def _survey_redirect(request, survey):
     """
