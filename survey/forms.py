@@ -172,7 +172,10 @@ def forms_for_survey(survey, request):
     session_key = request.session.session_key.lower()
     login_user = request.user
     random_uuid = uuid.uuid4().hex
-    post = request.POST if request.POST else None # bug in newforms
+    if request.POST: # bug in newforms
+        post = request.POST
+    else:
+        post = None
     return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post)
             for q in survey.questions.all().order_by("order") ]
 
