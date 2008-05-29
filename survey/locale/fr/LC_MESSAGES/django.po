@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-28 17:28+0200\n"
-"PO-Revision-Date: 2008-05-28 18:36+0100\n"
+"POT-Creation-Date: 2008-05-29 10:23+0200\n"
+"PO-Revision-Date: 2008-05-29 10:35+0100\n"
 "Last-Translator: Yann Malet <yann.malet@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -139,7 +139,7 @@ msgid "Add a survey"
 msgstr "Ajouter une étude"
 
 msgid "Delete survey"
-msgstr "Effacer une étude"
+msgstr "Supprimer une étude"
 
 msgid "Add a question"
 msgstr "Ajouter une question"
@@ -148,7 +148,7 @@ msgid "Update question"
 msgstr "Modifier cette question"
 
 msgid "Delete question"
-msgstr "Effacer une question"
+msgstr "Supprimer une question"
 
 msgid "Add a choice"
 msgstr "Ajouter un choix"
@@ -157,7 +157,7 @@ msgid "Update choice"
 msgstr "Modifier ce choix"
 
 msgid "Delete choice"
-msgstr "Effacer ce choix"
+msgstr "Supprimer ce choix"
 
 msgid "Insufficient Privileges."
 msgstr "autorisation insufisante."
@@ -168,23 +168,68 @@ msgstr "Resultats"
 msgid "Submission"
 msgstr "Soumettre"
 
+msgid "Interview"
+msgstr "Interview"
+
+msgid "Vote"
+msgstr "Vote"
+
+msgid "Answer"
+msgstr "Réponse"
+
+msgid "vote"
+msgstr "vote"
+
+msgid "of"
+msgstr "de"
+
+msgid "Delete Image"
+msgstr "Supprimer l'image"
+
 msgid "Submit"
 msgstr "Envoyer"
 
 msgid "Are you sure you want to delete the following survey ?"
-msgstr "Êtes-vous certain de vouloir effacer l'étude suivante ?"
+msgstr "Êtes-vous certain de vouloir supprimer l'étude suivante ?"
 
 msgid "Delete"
-msgstr "Effacer"
+msgstr "Supprimer"
 
 msgid "Add survey"
 msgstr "Ajouter une étude"
 
+msgid "Survey"
+msgstr "Etude"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Info"
+msgstr "Information"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "No Submissions."
+msgstr "Pas de Soumission"
+
+msgid "completed"
+msgstr ""
+
+msgid "this survey."
+msgstr "Cete étude"
+
 msgid "Edit"
-msgstr "Edit"
+msgstr "Editer"
+
+msgid "Transfer"
+msgstr ""
+
+msgid "Publish"
+msgstr "Publier"
 
 msgid "Are you sure you want to delete this image ?"
-msgstr "Etes vous certain de vouloir effacer cette image ?"
+msgstr "Etes vous certain de vouloir Supprimer cette image ?"
 
 msgid "View Online"
 msgstr "Voir en ligne"
@@ -198,12 +243,6 @@ msgstr "type"
 msgid "Object"
 msgstr "Objet"
 
-msgid "Actions"
-msgstr "Actions"
-
-msgid "Survey"
-msgstr "Etude"
-
 msgid "Update"
 msgstr "Modifier"
 
@@ -212,4 +251,10 @@ msgstr "Question"
 
 msgid "choice"
 msgstr "Choix"
+
+msgid "You have"
+msgstr ""
+
+msgid "Thank you for you submission!"
+msgstr ""
 

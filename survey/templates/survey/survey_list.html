@@ -1,9 +1,10 @@
 {% extends "survey/base.html" %}
+{% load i18n %}
 {% block content %}{% load survey %}
-<h1>Surveys</h1>
+<h1>{% trans "Surveys"%}</h1>
 <fieldset class="module">
 <table style="width: 100%">
-    <thead><th>Survey</th><th>Status</th><th>Info</th></thead>
+    <thead><th>{% trans "Survey"%}</th><th>{% trans "Status"%}</th><th>{% trans "Info"%}</th></thead>
     {% for survey in object_list %}
     {% if survey.open or user|can_view_answers:survey %}
     <tr class="{% cycle row1,row2 %}">
@@ -15,10 +16,10 @@
             {% if survey.submission_count %}
                 <a href='{% url survey-results slug=survey.slug %}'>{{ survey.submission_count }} Submission{{ survey.submission_count|pluralize:"s" }}</a>
             {% else %}
-                No Submissions.
+                {% trans "No Submissions."%}
             {% endif %}
         {% endif %}
-        {% if request|has_answered:survey %}You have <a href='{% url answers-detail slug=survey.slug,key=request.session.session_key %}'>completed</a> this survey.{% endif %}
+        {% if request|has_answered:survey %}{% trans "You have"%} <a href='{% url answers-detail slug=survey.slug,key=request.session.session_key %}'>{% trans "completed"%}</a> {% trans "this survey."%}{% endif %}
         </td></tr>
     {% endif %}
     {% endfor %}

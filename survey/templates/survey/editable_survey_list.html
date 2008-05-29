@@ -4,10 +4,10 @@
 {% block content %}
 
 <h1>Surveys</h1>
-<ul class="object-tools"><li><a href={% url survey-add %} class="addlink">{% trans "Add survey" noop %}</a></li></ul>
+<ul class="object-tools"><li><a href={% url survey-add %} class="addlink">{% trans "Add survey"  %}</a></li></ul>
 <fieldset class="module">
 <table style="width: 100%">
-    <thead><th>Survey</th><th>Status</th><th>Info</th><th>Actions</th></thead>
+    <thead><th>{% trans "Survey"%}</th><th>{% trans "Status"%}</th><th>{% trans "Info"%}</th><th>{% trans "Actions"%}</th></thead>
     {% for survey in object_list %}
     <tr class="{% cycle row1,row2 %}">
         <td><a href='{% url survey-detail slug=survey.slug %}'>{{ survey.title }}</a>
@@ -16,14 +16,14 @@
         <td>
         {% if user|can_view_answers:survey %}
             {% if survey.submission_count %}
-                <a href='{% url survey-results slug=survey.slug %}'>{{ survey.submission_count }} Submission{{ survey.submission_count|pluralize:"s" }}</a>
+                <a href='{% url survey-results slug=survey.slug %}'>{{ survey.submission_count }} {% trans "Submission"%}{{ survey.submission_count|pluralize:"s" }}</a>
             {% else %}
-                No Submissions.
+                {% trans "No Submissions."%}
             {% endif %}
         {% endif %}
-        {% if request|has_answered:survey %}You have <a href='{% url answers-detail slug=survey.slug,key=request.session.session_key %}'>completed</a> this survey.{% endif %}
+        {% if request|has_answered:survey %}You have <a href='{% url answers-detail slug=survey.slug,key=request.session.session_key %}'>{% trans "completed"%}</a> {% trans "this survey."%}{% endif %}
         </td>
-        <td><a href={% url survey-edit slug=survey.slug %}>{% trans "Edit" noop %}</a> <a href={% url survey-delete slug=survey.slug %}>{% trans "Delete" noop %}</a> Transfer | Publish</td>
+        <td><a href={% url survey-edit slug=survey.slug %}>{% trans "Edit"  %}</a> <a href={% url survey-delete slug=survey.slug %}>{% trans "Delete"  %}</a> {% trans "Transfer" %} | {% trans "Publish" %}</td>
     </tr>
     {% endfor %}
 </table>

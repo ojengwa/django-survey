@@ -7,7 +7,7 @@ input[type="radio"] { vertical-align: top; }
 {% block content %}
 <h1>{{ title }}</h1>
 {% if choice.image %}
-    <a href="{% url delete-image model_string=model_string,object_id=choice.id %}">Delete Image</a>
+    <a href="{% url delete-image model_string=model_string,object_id=choice.id %}">{% trans "Delete Image" %}</a>
     <img src="{{ choice.get_image_url }}" />
 {% endif %}
 <form enctype="multipart/form-data" method="post" class="focus-input" action="">
