@@ -94,3 +94,8 @@ INSTALLED_APPS = (
 )
 
 LOGIN_URL = "/survey/login/"
+
+try:
+    from localsettings import *
+except ImportError:
+    pass
