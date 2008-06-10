@@ -8,7 +8,8 @@ from views import answers_list, answers_detail,\
                 survey_detail, survey_edit, survey_add,\
                 editable_survey_list, survey_delete, survey_update,\
                 question_add, question_update,question_delete,\
-                choice_add, choice_update, choice_delete, delete_image
+                choice_add, choice_update, choice_delete, delete_image,\
+                visible_survey_list
 
 
 urlpatterns = patterns('',
@@ -16,22 +17,20 @@ urlpatterns = patterns('',
         login,
         {'template_name':'admin/login.html'},name='auth_login'),
 
-    url(r'^visible/$', object_list,
-        { 'queryset': Survey.objects.filter(visible=True), 'allow_empty': True,
-          'extra_context': {'title': _('Surveys')}}, name='surveys-visible'),
+    url(r'^visible/$', visible_survey_list, name='surveys-visible'),
     url(r'^editable/$', editable_survey_list, name='surveys-editable'),
 
-    url(r'^detail/(?P<slug>[-\w]+)/$', survey_detail,   name='survey-detail'),
+    url(r'^detail/(?P<survey_slug>[-\w]+)/$', survey_detail,   name='survey-detail'),
 
-    url(r'^answers/(?P<slug>[-\w]+)/$',
+    url(r'^answers/(?P<survey_slug>[-\w]+)/$',
         answers_list,    name='survey-results'),
-    url(r'^answers/(?P<slug>[-\w]+)/(?P<key>[a-fA-F0-9]{10,40})/$',
+    url(r'^answers/(?P<survey_slug>[-\w]+)/(?P<key>[a-fA-F0-9]{10,40})/$',
         answers_detail,  name='answers-detail'),
 
-    url(r'^edit/(?P<slug>[-\w]+)/$', survey_edit,   name='survey-edit'),
+    url(r'^edit/(?P<survey_slug>[-\w]+)/$', survey_edit,   name='survey-edit'),
     url(r'^add/$', survey_add,   name='survey-add'),
     url(r'^update/(?P<survey_slug>[-\w]+)/$', survey_update,   name='survey-update'),
-    url(r'^delete/(?P<slug>[-\w]+)/$', survey_delete, name='survey-delete'),
+    url(r'^delete/(?P<survey_slug>[-\w]+)/$', survey_delete, name='survey-delete'),
 
     url(r'^question/add/(?P<survey_slug>[-\w]+)/$', question_add,   name='question-add'),
     url(r'^question/update/(?P<survey_slug>[-\w]+)/(?P<question_id>\d)/$', question_update,   name='question-update'),

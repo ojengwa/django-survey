@@ -20,7 +20,11 @@ from survey.forms import forms_for_survey, SurveyForm, QuestionForm, ChoiceForm
 from survey.models import Survey, Answer, Question, Choice
 
 
-def _survey_redirect(request, survey):
+def _survey_redirect(request, survey,
+                    group_slug=None, group_slug_field=None, group_qs=None,
+                    template_name = 'survey/survey_detail.html',
+                    extra_context=None,
+                    *args, **kw):
     """
     Conditionally redirect to the appropriate page;
     if there is a "next" value in the GET URL parameter,
@@ -42,7 +46,8 @@ def _survey_redirect(request, survey):
         return HttpResponseRedirect(request.REQUEST['next'])
     if survey.answers_viewable_by(request.user):
         return HttpResponseRedirect(reverse('survey-results', None, (),
-                                                {'slug': survey.slug}))
+                                                {'survey_slug': survey.slug,
+                                                 "group_slug":group_slug}))
 
     # For this survey, have they answered any questions?
     if (hasattr(request, 'session') and Answer.objects.filter(
@@ -51,7 +56,8 @@ def _survey_redirect(request, survey):
             question__survey__slug=survey.slug).count()):
         return HttpResponseRedirect(
             reverse('answers-detail', None, (),
-                    {'slug': survey.slug,
+                    {'survey_slug': survey.slug,
+                     "group_slug":group_slug,
                      'key': request.session.session_key.lower()}))
 
     # go to thank you page
@@ -59,15 +65,20 @@ def _survey_redirect(request, survey):
                               {'survey': survey, 'title': _('Thank You')},
                               context_instance=RequestContext(request))
 
-def survey_detail(request, slug):
+def survey_detail(request, survey_slug,
+               group_slug=None, group_slug_field=None, group_qs=None,
+               template_name = 'survey/survey_detail.html',
+               extra_context=None,
+               *args, **kw):
     """
 
     """
-    survey = get_object_or_404(Survey.objects.filter(visible=True), slug=slug)
+    survey = get_object_or_404(Survey.objects.filter(visible=True), slug=survey_slug)
     if survey.closed:
         if survey.answers_viewable_by(request.user):
             return HttpResponseRedirect(reverse('survey-results', None, (),
-                                                {'slug': slug}))
+                                                {'survey_slug': survey_slug,
+                                                 'group_slug': group_slug}))
         raise Http404 #(_('Page not found.')) # unicode + exceptions = bad
     # if user has a session and have answered some questions
     # and the survey does not accept multiple answers,
@@ -75,7 +86,7 @@ def survey_detail(request, slug):
     if (hasattr(request, 'session') and
         survey.has_answers_from(request.session.session_key) and
         not survey.allows_multiple_interviews):
-        return _survey_redirect(request, survey)
+        return _survey_redirect(request, survey,group_slug=group_slug)
     # if the survey is restricted to authentified user redirect
     # annonymous user to the login page
     if survey.restricted and str(request.user) == "AnonymousUser":
@@ -91,21 +102,28 @@ def survey_detail(request, slug):
     if (request.POST and all(form.is_valid() for form in survey.forms)):
         for form in survey.forms:
             form.save()
-        return _survey_redirect(request, survey)
+        return _survey_redirect(request, survey,group_slug=group_slug)
     # Redirect either to 'survey.template_name' if this attribute is set or
     # to the default template
-    return render_to_response(survey.template_name or 'survey/survey_detail.html',
-                              {'survey': survey, 'title': survey.title},
+    return render_to_response(survey.template_name or template_name,
+                              {'survey': survey,
+                               'title': survey.title,
+                               'group_slug': group_slug},
                               context_instance=RequestContext(request))
 
 # TODO: ajaxify this page (jquery) : add a date picker, ...
 # TODO: Fix the bug that make the questions and the choices unordered
 
 @login_required()
-def survey_edit(request,slug):
-    survey = get_object_or_404(Survey, slug=slug)
+def survey_edit(request,survey_slug,
+               group_slug=None, group_slug_field=None, group_qs=None,
+               template_name = "survey/editable_survey_list.html",
+               extra_context=None,
+               *args, **kw):
+    survey = get_object_or_404(Survey, slug=survey_slug)
     return render_to_response('survey/survey_edit.html',
-                              {'survey': survey},
+                              {'survey': survey,
+                               'group_slug': group_slug},
                               context_instance=RequestContext(request))
 
 # TODO: Refactor the object add to avoid the code duplication.
@@ -113,7 +131,12 @@ def survey_edit(request,slug):
 # post_create_redirect, extra_context):
 
 @login_required()
-def survey_add(request):
+def survey_add(request,
+               group_slug=None, group_slug_field=None, group_qs=None,
+               template_name = "survey/editable_survey_list.html",
+               extra_context=None,
+               *args, **kw):
+
     if request.method == "POST":
         request_post = request.POST.copy()
         survey_form = SurveyForm(request_post)
@@ -122,8 +145,11 @@ def survey_add(request):
             new_survey.created_by =  request.user
             new_survey.editable_by = request.user
             new_survey.slug = slugify(new_survey.title)
+            if group_slug:
+                group = get_object_or_404(group_qs,slug=group_slug)
+                new_survey.recipient = group
             new_survey.save()
-            return HttpResponseRedirect(reverse("surveys-editable"))
+            return HttpResponseRedirect(reverse("surveys-editable",kwargs={"group_slug":group_slug,}))
 
 
     else:
@@ -134,7 +160,11 @@ def survey_add(request):
                               context_instance=RequestContext(request))
 
 @login_required()
-def survey_update(request, survey_slug):
+def survey_update(request, survey_slug,
+               group_slug=None, group_slug_field=None, group_qs=None,
+               template_name = 'survey/survey_add.html',
+               extra_context=None,
+               *args, **kw):
     if request.method == "POST":
         request_post = request.POST.copy()
         survey = get_object_or_404(Survey, slug=survey_slug)
@@ -145,34 +175,44 @@ def survey_update(request, survey_slug):
             new_survey.editable_by = request.user
             new_survey.slug = slugify(new_survey.title)
             new_survey.save()
-            return HttpResponseRedirect(reverse("survey-edit",None,(),{"slug":survey_slug}))
+            return HttpResponseRedirect(reverse("survey-edit",None,(),{"group_slug":group_slug,"survey_slug":survey_slug}))
 
 
     else:
         survey = get_object_or_404(Survey, slug=survey_slug)
         print "survey : ",survey
         survey_form = SurveyForm(instance=survey)
-    return render_to_response('survey/survey_add.html',
+    return render_to_response(template_name,
                               {'title': _("Add a survey"),
                                'form' : survey_form},
                               context_instance=RequestContext(request))
 
 @login_required()
-def survey_delete(request,slug):
+def survey_delete(request,survey_slug=None,
+               group_slug=None, group_slug_field=None,
+               group_qs=None,
+               template_name = "survey/editable_survey_list.html",
+               extra_context=None,
+               *args, **kw):
     # TRICK: The following line does not have any logical explination
     # except than working around a bug in FF. It has been suggested there
     # http://groups.google.com/group/django-users/browse_thread/thread/e6c96ab0538a544e/0e01cdda3668dfce#0e01cdda3668dfce
     request_post = request.POST.copy()
-    return delete_object(request, slug=slug,
+    return delete_object(request, slug=survey_slug,
         **{"model":Survey,
-         "post_delete_redirect": reverse("surveys-editable"),
+         "post_delete_redirect": reverse("surveys-editable",kwargs={'group_slug':group_slug}),
          "template_object_name":"survey",
          "login_required": True,
          'extra_context': {'title': _('Delete survey')}
         })
 
 @login_required()
-def question_add(request,survey_slug):
+def question_add(request,survey_slug,
+               group_slug=None, group_slug_field=None,
+               group_qs=None,
+               template_name = 'survey/question_add.html',
+               extra_context=None,
+               *args, **kw):
     survey = get_object_or_404(Survey, slug=survey_slug)
     if request.method == "POST":
         request_post = request.POST.copy()
@@ -182,17 +222,23 @@ def question_add(request,survey_slug):
             new_question.survey = survey
             new_question.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"slug":survey_slug}))
+                                                {"survey_slug":survey_slug,
+                                                 "group_slug":group_slug}))
 
     else:
         question_form = QuestionForm()
-    return render_to_response('survey/question_add.html',
+    return render_to_response(template_name,
                               {'title': _("Add a question"),
                                'form' : question_form},
                               context_instance=RequestContext(request))
 
 @login_required()
-def question_update(request,survey_slug,question_id):
+def question_update(request,survey_slug,question_id,
+                    group_slug=None, group_slug_field=None,
+                    group_qs=None,
+                    template_name = 'survey/question_add.html',
+                    extra_context=None,
+                    *args, **kw):
     survey = get_object_or_404(Survey, slug=survey_slug)
     question =  get_object_or_404(Question,id=question_id)
     if question not in survey.questions.iterator():
@@ -208,11 +254,12 @@ def question_update(request,survey_slug,question_id):
             new_question.survey = survey
             new_question.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"slug":survey_slug}))
+                                                {"survey_slug":survey_slug,
+                                                 "group_slug":group_slug}))
     else:
         question_form = QuestionForm(instance=question)
     #import pdb; pdb.set_trace()
-    return render_to_response('survey/question_add.html',
+    return render_to_response(template_name,
                               {'title': _("Update question"),
                                'question' : question,
                                'model_string' : "Question",
@@ -220,21 +267,33 @@ def question_update(request,survey_slug,question_id):
                               context_instance=RequestContext(request))
 
 @login_required()
-def question_delete(request,survey_slug,question_id):
+def question_delete(request,survey_slug,question_id,
+                    group_slug=None, group_slug_field=None,
+                    group_qs=None,
+                    template_name = None,
+                    extra_context=None,
+                    *args, **kw):
     # TRICK: The following line does not have any logical explination
     # except than working around a bug in FF. It has been suggested there
     # http://groups.google.com/group/django-users/browse_thread/thread/e6c96ab0538a544e/0e01cdda3668dfce#0e01cdda3668dfce
     request_post = request.POST.copy()
     return delete_object(request, object_id=question_id,
         **{"model":Question,
-         "post_delete_redirect": reverse("survey-edit",None,(), {"slug":survey_slug}),
+         "post_delete_redirect": reverse("survey-edit",None,(),
+                                         {"survey_slug":survey_slug,
+                                          "group_slug":group_slug}),
          "template_object_name":"question",
          "login_required": True,
          'extra_context': {'title': _('Delete question')}
         })
 
 @login_required()
-def choice_add(request,question_id):
+def choice_add(request,question_id,
+                group_slug=None, group_slug_field=None,
+                group_qs=None,
+                template_name = 'survey/choice_add.html',
+                extra_context=None,
+                *args, **kw):
     question = get_object_or_404(Question, id=question_id)
 
     if request.method == "POST":
@@ -245,17 +304,23 @@ def choice_add(request,question_id):
             new_choice.question = question
             new_choice.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"slug":question.survey.slug}))
+                                                {"survey_slug":question.survey.slug,
+                                                 "group_slug":group_slug}))
     else:
         choice_form = ChoiceForm()
 
-    return render_to_response('survey/choice_add.html',
+    return render_to_response(template_name,
                               {'title': _("Add a choice"),
                                'form' : choice_form},
                               context_instance=RequestContext(request))
 
 @login_required()
-def choice_update(request,question_id, choice_id):
+def choice_update(request,question_id, choice_id,
+                group_slug=None, group_slug_field=None,
+                group_qs=None,
+                template_name = 'survey/choice_add.html',
+                extra_context=None,
+                *args, **kw):
     question = get_object_or_404(Question, id=question_id)
     choice = get_object_or_404(Choice, id=choice_id)
     if choice not in question.choices.iterator():
@@ -269,10 +334,11 @@ def choice_update(request,question_id, choice_id):
             new_choice.question = question
             new_choice.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"slug":question.survey.slug}))
+                                                {"survey_slug":question.survey.slug,
+                                                 "group_slug":group_slug}))
     else:
         choice_form = ChoiceForm(instance=choice)
-    return render_to_response('survey/choice_add.html',
+    return render_to_response(template_name,
                               {'title': _("Update choice"),
                                'choice' : choice,
                                'model_string' : "Choice",
@@ -280,46 +346,80 @@ def choice_update(request,question_id, choice_id):
                               context_instance=RequestContext(request))
 
 @login_required()
-def choice_delete(request,survey_slug,choice_id):
+def choice_delete(request,survey_slug,choice_id,
+                group_slug=None, group_slug_field=None,
+                group_qs=None,
+                template_name = 'survey/choice_add.html',
+                extra_context=None,
+                *args, **kw):
     # TRICK: The following line does not have any logical explination
     # except than working around a bug in FF. It has been suggested there
     # http://groups.google.com/group/django-users/browse_thread/thread/e6c96ab0538a544e/0e01cdda3668dfce#0e01cdda3668dfce
     request_post = request.POST.copy()
     return delete_object(request, object_id=choice_id,
         **{"model":Choice,
-         "post_delete_redirect": reverse("survey-edit",None,(), {"slug":survey_slug}),
+         "post_delete_redirect": reverse("survey-edit",None,(),
+                                         {"survey_slug":survey_slug,
+                                          "group_slug":group_slug}),
          "template_object_name":"choice",
          "login_required": True,
          'extra_context': {'title': _('Delete choice')}
         })
 
 @login_required()
-def editable_survey_list(request):
+def visible_survey_list(request,
+                        group_slug=None, group_slug_field=None, group_qs=None,
+                        template_name = "survey/survey_list.html",
+                        extra_context=None,
+                        *args, **kw):
+    login_user= request.user
+
+    return object_list(request,
+        **{ 'queryset': Survey.objects.filter(visible=True),
+          'allow_empty': True,
+          'template_name':template_name,
+          'extra_context': {'title': _('Surveys')}}
+    )
+
+
+@login_required()
+def editable_survey_list(request,
+                         group_slug=None, group_slug_field=None, group_qs=None,
+                         template_name = "survey/editable_survey_list.html",
+                         extra_context=None,
+                         *args, **kw):
     login_user= request.user
 
     return object_list(request,
         **{ 'queryset': Survey.objects.filter(Q(created_by=login_user) |
                                             Q(editable_by=login_user)),
           'allow_empty': True,
-          'template_name':"survey/editable_survey_list.html",
-          'extra_context': {'title': _('Surveys')}}
-    )
+          'template_name':template_name,
+          'extra_context': {'title': _('Surveys'),
+                            'group_slug': group_slug
+                            }
+            })
 
-def answers_list(request, slug):
+
+def answers_list(request, survey_slug,
+                 group_slug=None, group_slug_field=None, group_qs=None,
+                 template_name = 'survey/answers_list.html',
+                 extra_context=None,
+                 *args, **kw):
     """
     Shows a page showing survey results for an entire survey.
     """
-    survey = get_object_or_404(Survey.objects.filter(visible=True), slug=slug)
+    survey = get_object_or_404(Survey.objects.filter(visible=True), slug=survey_slug)
     # if the user lacks permissions, show an "Insufficient Permissions page"
     if not survey.answers_viewable_by(request.user):
         if (hasattr(request, 'session') and
             survey.has_answers_from(request.session.session_key)):
             return HttpResponseRedirect(
                 reverse('answers-detail', None, (),
-                        {'slug': survey.slug,
+                        {'survey_slug': survey.slug,
                          'key': request.session.session_key.lower()}))
         return HttpResponse(unicode(_('Insufficient Privileges.')), status=403)
-    return render_to_response('survey/answers_list.html',
+    return render_to_response(template_name,
         { 'survey': survey,
           'view_submissions': request.user.has_perm('survey.view_submissions'),
           'title': survey.title + u' - ' + unicode(_('Results'))},
@@ -327,7 +427,11 @@ def answers_list(request, slug):
 
 
 
-def answers_detail(request, slug, key):
+def answers_detail(request, survey_slug, key,
+                   group_slug=None, group_slug_field=None, group_qs=None,
+                   template_name = 'survey/answers_detail.html',
+                   extra_context=None,
+                   *args, **kw):
     """
     Shows a page with survey results for a single person.
 
@@ -345,7 +449,7 @@ def answers_detail(request, slug, key):
         (not request.user.has_perm('survey.view_submissions') or
          not survey.answers_viewable_by(request.user))):
         return HttpResponse(unicode(_('Insufficient Privileges.')), status=403)
-    return render_to_response('survey/answers_detail.html',
+    return render_to_response(template_name,
         {'survey': survey, 'submission': answers,
          'title': survey.title + u' - ' + unicode(_('Submission'))},
         context_instance=RequestContext(request))

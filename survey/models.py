@@ -9,6 +9,8 @@ from django.utils import encoding
 from django.template.defaultfilters import date as datefilter
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 
 
 QTYPE_CHOICES = (
@@ -19,6 +21,13 @@ QTYPE_CHOICES = (
     ('I', 'Radio Image List'),
     ('C', 'Checkbox List')
 )
+
+class SurveyManager(models.Manager):
+
+    def surveys_for(self, recipient):
+        recipient_type = ContentType.objects.get_for_model(recipient)
+        return Survey.objects.filter(visible=True,recipient_type=recipient_type, recipient_id=recipient.id)
+
 
 class Survey(models.Model):
 
@@ -45,9 +54,15 @@ class Survey(models.Model):
 
     # Control who can edit the survey
     # TODO: Plug this control in the view used to edit the survey
-
     created_by = models.ForeignKey(User, related_name="created_surveys")
     editable_by = models.ForeignKey(User,related_name="owned_surveys")
+
+    # Integration in Pinax
+    recipient_type = models.ForeignKey(ContentType,null=True)
+    recipient_id = models.PositiveIntegerField(null=True)
+    recipient = generic.GenericForeignKey('recipient_type', 'recipient_id')
+
+    objects = SurveyManager()
 
     @property
     def _cache_name(self):
