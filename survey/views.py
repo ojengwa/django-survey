@@ -438,7 +438,7 @@ def answers_detail(request, survey_slug, key,
     If the user lacks permissions, show an "Insufficient Permissions page".
     """
     answers = Answer.objects.filter(session_key=key.lower(),
-        question__survey__visible=True, question__survey__slug=slug)
+        question__survey__visible=True, question__survey__slug=survey_slug)
     if not answers.count(): raise Http404
     survey = answers[0].question.survey
 
