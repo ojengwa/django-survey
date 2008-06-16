@@ -8,7 +8,7 @@ input[type="radio"] { vertical-align: top; }
 {% endblock %}
 {% block content %}
 <h1>{{ survey.title }}</h1>
-<ul class="object-tools"><li><a href='{% url survey-detail slug=survey.slug %}' class="addlink">{% trans "View Online" %}</a></li></ul>
+<ul class="object-tools"><li><a href='{% url survey-detail survey_slug=survey.slug %}' class="addlink">{% trans "View Online" %}</a></li></ul>
 <table style="width: 100%">
     <thead>
         <th>{% trans "Object type" %}</th><th>{% trans "order" %}</th><th>{% trans "type" %}</th>
@@ -26,7 +26,7 @@ input[type="radio"] { vertical-align: top; }
         </td>
         <td>
             <a href='{% url survey-update survey_slug=survey.slug %}'>{% trans "Update"  %}</a>
-            <a href='{% url survey-delete slug=survey.slug %}'>{% trans "Delete"  %}</a>
+            <a href='{% url survey-delete survey_slug=survey.slug %}'>{% trans "Delete"  %}</a>
             <a href='{% url question-add survey_slug=survey.slug %}'>{% trans "Add a question"  %}</a>
         </td>
     </tr>

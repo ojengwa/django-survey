@@ -41,7 +41,7 @@
     {% endfor %}
 {% else %}
     {% for answer in question.answers.all %}
-        <div>{% if view_submissions %}<a href='{% url answers-detail slug=survey.slug,key=answer.session_key %}/'>{% endif %}{% trans "Answer" %} {{ forloop.counter }}{% if view_submissions %}</a>{% endif %} {% trans "of" %} {{ question.answer_count }}</div>
+        <div>{% if view_submissions %}<a href='{% url answers-detail survey_slug=survey.slug,key=answer.session_key %}/'>{% endif %}{% trans "Answer" %} {{ forloop.counter }}{% if view_submissions %}</a>{% endif %} {% trans "of" %} {{ question.answer_count }}</div>
         <div class="answer">{{ answer.text }}</div>
         <hr/>
     {% endfor %}
