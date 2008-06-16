@@ -145,7 +145,7 @@ class Survey(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('survey-detail', (), {'slug': self.slug })
+        return ('survey-detail', (), {'survey_slug': self.slug })
 
     def save(self):
         res = super(Survey, self).save()

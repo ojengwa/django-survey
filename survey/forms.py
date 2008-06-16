@@ -50,7 +50,10 @@ class BaseAnswerForm(Form):
         ans = Answer()
         ans.question = self.question
         ans.session_key = self.session_key
-        ans.user = self.user
+        if self.user.is_authenticated():
+            ans.user = self.user
+        else:
+            ans.user = None
         ans.interview_uuid = self.interview_uuid
         ans.text = self.cleaned_data['answer']
         if commit: ans.save()

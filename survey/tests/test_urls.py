@@ -5,13 +5,13 @@ test_cases = r"""
 
 # Test the view that list the visible surveys
 >>> response = c.get("/survey/visible/")
->>> response.status_code
+>>> response.status_code #visible surveys
 200
 
 # Access a view protected by login_required decorator
 # It should redirect me '302'
 >>> response = c.get("/survey/editable/")
->>> response.status_code
+>>> response.status_code #editable surveys
 302
 
 >>> from django.contrib.auth.models import User

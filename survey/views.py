@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.http import HttpResponseNotFound
 from django.template import loader, RequestContext
@@ -366,20 +367,23 @@ def choice_delete(request,survey_slug,choice_id,
          'extra_context': {'title': _('Delete choice')}
         })
 
-@login_required()
+
 def visible_survey_list(request,
                         group_slug=None, group_slug_field=None, group_qs=None,
+                        login_required = False,
                         template_name = "survey/survey_list.html",
                         extra_context=None,
                         *args, **kw):
     login_user= request.user
-
-    return object_list(request,
-        **{ 'queryset': Survey.objects.filter(visible=True),
-          'allow_empty': True,
-          'template_name':template_name,
-          'extra_context': {'title': _('Surveys')}}
-    )
+    if login_required and not login_user.is_authenticated():
+        return redirect_to_login(request.path)
+    else:
+        return object_list(request,
+            **{ 'queryset': Survey.objects.filter(visible=True),
+              'allow_empty': True,
+              'template_name':template_name,
+              'extra_context': {'title': _('Surveys')}}
+        )
 
 
 @login_required()
