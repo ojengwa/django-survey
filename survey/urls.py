@@ -1,7 +1,6 @@
 from django.conf.urls.defaults import patterns, url
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.list_detail import object_list
-from django.contrib.auth.views import login
 
 from models import Survey
 from views import answers_list, answers_detail,\
@@ -13,9 +12,6 @@ from views import answers_list, answers_detail,\
 
 
 urlpatterns = patterns('',
-    url(r'^login/$',
-        login,
-        {'template_name':'admin/login.html'},name='auth_login'),
 
     url(r'^visible/$', visible_survey_list, name='surveys-visible'),
     url(r'^editable/$', editable_survey_list, name='surveys-editable'),
