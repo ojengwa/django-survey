@@ -93,7 +93,7 @@ INSTALLED_APPS = (
     'survey',
 )
 
-LOGIN_URL = "/survey/login/"
+LOGIN_URL = "/login/"
 
 try:
     from localsettings import *
