@@ -426,7 +426,8 @@ def answers_list(request, survey_slug,
     return render_to_response(template_name,
         { 'survey': survey,
           'view_submissions': request.user.has_perm('survey.view_submissions'),
-          'title': survey.title + u' - ' + unicode(_('Results'))},
+          'title': survey.title + u' - ' + unicode(_('Results')),
+            'answers': survey.answers},
         context_instance=RequestContext(request))
 
 

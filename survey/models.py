@@ -22,6 +22,77 @@ QTYPE_CHOICES = (
     ('C', 'Checkbox List')
 )
 
+class Questionnaire(models.Model):
+    """
+    A Questionnaire consists of a number of ``Questions``. It allows sets of
+    Questions to be reused in any number of surveys.
+    """
+    title = models.CharField(_('questionnaire title'), max_length=80)
+    
+    class Meta:
+        verbose_name = _('questionnaire')
+        verbose_name_plural = _('questionnaires')
+    
+    class Admin:
+        list_display = ('__unicode__', 'title')
+        search_fields = ('title', )
+        
+    def __unicode__(self):
+        return u"%s" % self.title
+
+class Question(models.Model):
+    questionnaire = models.ForeignKey(Questionnaire, related_name='questions',
+                             verbose_name=_('questionnaire'))
+    qtype = models.CharField(_('question type'), max_length=2,
+                                choices=QTYPE_CHOICES)
+    required = models.BooleanField(_('required'), default=True)
+    text     = models.TextField(_('question text'), core=True)
+    order = models.IntegerField(verbose_name = _("order"),
+                                null=True, blank=True, core=True)
+    # TODO: Add a button or check box to remove the file. There are several
+    # recipes floating on internet. I like the one with a custom widget
+    image = models.ImageField(verbose_name=_("image"),
+                              upload_to= "survey/images/questions" + "/%Y/%m/%d/",
+                              null=True, blank= True, core=False)
+    # TODO: Make choice_group mandatory if qtype is choices.
+    choice_group = models.ForeignKey('ChoiceGroup', related_name='questions', blank=True, null=True)
+    # TODO: Modify the forms to respect the style defined by this attr (html,css)
+    qstyle = models.TextField(_("Html Style"),null=True, blank=True)
+    ## model validation for requiring choices.
+
+    #@property
+    def answer_count(self, survey):
+        if hasattr(self, '_answer_count'):
+            return self._answer_count
+        self._answer_count = self.answers.filter(survey=survey).count()
+        return self._answer_count
+
+
+    def __unicode__(self):
+        return u' - '.join([self.questionnaire.title, self.text])
+
+    class Meta:
+        unique_together = (('questionnaire', 'text'),)
+        order_with_respect_to='questionnaire'
+        ordering = ('questionnaire', 'order')
+
+    class Admin:
+        list_select_related = True
+        list_filter = ('questionnaire', 'qtype')
+        list_display_links = ('text',)
+        list_display = ('questionnaire', 'text', 'qtype', 'required')
+        search_fields = ('text',)
+
+    @models.permalink
+    def get_update_url(self):
+        return ('question-update', (), {'questionnaire_title': self.questionnaire.title,'questionnaire_id' :self.id  })
+
+    # TODO: add this a fallback to this optimisation with django ORM.
+    @property
+    def choice_count(self):
+        return self.choice_group.choices.count()
+
+    
 class SurveyManager(models.Manager):
 
     def surveys_for(self, recipient):
@@ -30,14 +101,20 @@ class SurveyManager(models.Manager):
 
 
 class Survey(models.Model):
-
+    """
+    A ``Survey`` is the activity of gathering answers based on a 
+    ``Questionnaire``. This allows you to run one or more surveys using the 
+    same Questionnaire, but obviously capturing difference answers.
+    """
     title   = models.CharField(_('survey title'), max_length=80)
     slug    = models.SlugField(_('slug'),
                             prepopulate_from=("title",), unique=True)
     description= models.TextField(verbose_name=_("description"),
                             help_text=_("This field appears on the public web site and should give an overview to the interviewee"),
                             blank=True)
-
+    questionnaire = models.ForeignKey(Questionnaire, related_name='surveys',
+                                 verbose_name=_('questionnaires'))
+    
     ## Add validation on datetimes
     opens   = models.DateTimeField(_('survey starts accepting submissions on'))
     closes  = models.DateTimeField(_('survey stops accepting submissions on'))
@@ -116,7 +193,7 @@ class Survey(models.Model):
         if hasattr(self, '_interview_count'):
             return self._interview_count
         self._interview_count = len(Answer.objects.filter(
-            question__survey=self.id).values('interview_uuid').distinct())
+            survey=self.id).values('interview_uuid').distinct())
         return self._interview_count
 
     @property
@@ -132,7 +209,7 @@ class Survey(models.Model):
     def has_answers_from(self, session_key):
         return bool(
             Answer.objects.filter(session_key__exact=session_key.lower(),
-            question__survey__id__exact=self.id).distinct().count())
+            survey__exact=self.id).distinct().count())
 
 
 
@@ -158,67 +235,35 @@ class Survey(models.Model):
         if user.is_anonymous(): return False
         return user.has_perm('survey.view_answers')
 
-
-class Question(models.Model):
-    survey = models.ForeignKey(Survey, related_name='questions',
-                                 verbose_name=_('survey'))
-    qtype = models.CharField(_('question type'), max_length=2,
-                                choices=QTYPE_CHOICES)
-    required = models.BooleanField(_('required'), default=True)
-    text     = models.TextField(_('question text'), core=True)
-    order = models.IntegerField(verbose_name = _("order"),
-                                null=True, blank=True, core=True)
-    # TODO: Add a button or check box to remove the file. There are several
-    # recipes floating on internet. I like the one with a custom widget
-    image = models.ImageField(verbose_name=_("image"),
-                              upload_to= "survey/images/questions" + "/%Y/%m/%d/",
-                              null=True, blank= True, core=False)
+class ChoiceGroup(models.Model):
+    name = models.CharField(_('choice group name'), max_length=30)
+    description = models.TextField(_('choice group description'), blank=True, null=True)
     # Define if the user must select at least 'choice_num_min' number of
     # choices and at most 'choice_num_max'
     choice_num_min = models.IntegerField(_("minimun number of choices"),
                                          null=True, blank=True,)
     choice_num_max = models.IntegerField(_("maximum number of choices"),
                                          null=True, blank=True,)
-    # TODO: Modify the forms to respect the style defined by this attr (html,css)
-    qstyle = models.TextField(_("Html Style"),null=True, blank=True)
-    ## model validation for requiring choices.
-
-    @property
-    def answer_count(self):
-        if hasattr(self, '_answer_count'):
-            return self._answer_count
-        self._answer_count = self.answers.count()
-        return self._answer_count
-
-
-    def __unicode__(self):
-        return u' - '.join([self.survey.slug, self.text])
-
+    
     class Meta:
-        unique_together = (('survey', 'text'),)
-        order_with_respect_to='survey'
-        ordering = ('survey', 'order')
-
+        pass
     class Admin:
-        list_select_related = True
-        list_filter = ('survey', 'qtype')
-        list_display_links = ('text',)
-        list_display = ('survey', 'text', 'qtype', 'required')
-        search_fields = ('text',)
-
-    @models.permalink
-    def get_update_url(self):
-        return ('question-update', (), {'survey_slug': self.survey.slug,'question_id' :self.id  })
-
-    # TODO: add this a fallback to this optimisation with django ORM.
-    @property
-    def choice_count(self):
-        return self.choices.count()
+        pass
+    
+    def __unicode__(self):
+        if self.description:
+            return u'%s: %s' % (self.name, self.description) 
+        return u'%s' % (self.name)
 
 class Choice(models.Model):
     ## validate question is of proper qtype
-    question = models.ForeignKey(Question, related_name='choices',
-                                 verbose_name=_('question'))
+    choice_group = models.ForeignKey(ChoiceGroup, related_name='choices',
+                                    edit_inline=models.TABULAR,
+                                    min_num_in_admin=5,
+                                    num_in_admin=5, num_extra_on_change=3,
+                                    verbose_name=_('choice group'),
+                                    null=True,
+                                    )
     text = models.CharField(_('choice text'), max_length=500, core=True)
     # TODO: Add a button or check box to remove the file. There are several
     # recipes floating on internet. I like the one with a custom widget
@@ -228,32 +273,41 @@ class Choice(models.Model):
 
     order = models.IntegerField(verbose_name = _("order"),
                                 null=True, blank=True, core=True)
+    class Meta:
+        unique_together = (('choice_group', 'text'),)
+        order_with_respect_to='choice_group'
+        ordering = ('choice_group', 'order')
+
     class Admin:
-        pass
+        list_display = ('choice_group', 'text')
+        ordering = ('choice_group', 'order')
 
     @models.permalink
     def get_update_url(self):
-        return ('choice-update', (), {'question_id': self.question.id,'choice_id' :self.id  })
+        return ('choice-update', (), {'choice_group_id': self.choice_group.id,'choice_id' :self.id  })
 
     @property
     def count(self):
         if hasattr(self, '_count'):
             return self._count
-        self._count = Answer.objects.filter(question=self.question_id,
+        self._count = Answer.objects.filter(question=self.choice_group__question_id,
                                             text=self.text).count()
         return self._count
 
     def __unicode__(self):
         return self.text
 
-    class Meta:
-        unique_together = (('question', 'text'),)
-        order_with_respect_to='question'
-        ordering = ('question', 'order')
 
 class Answer(models.Model):
+    """
+    An ``Answer`` stores the response by a user to a question in a survey. 
+    Note that the question may be repeated in many surveys.
+    """
     user = models.ForeignKey(User, related_name='answers',
                              verbose_name=_('user'), editable=False,
+                             blank=True,null=True)
+    survey = models.ForeignKey(Survey, related_name='answers',
+                             verbose_name=_('survey'), editable=False,
                              blank=True,null=True)
     question = models.ForeignKey(Question, related_name='answers',
                                  verbose_name=_('question'),
@@ -265,12 +319,10 @@ class Answer(models.Model):
     # UUID is used to calculate the number of interviews
     interview_uuid = models.CharField(_("Interview uniqe identifier"),max_length=36)
 
-
     class Admin:
-        list_display = ('interview_uuid','question','user', 'submission_date',
-                        'session_key', 'text')
-
-        #list_filter = ('question__survey',)
+        list_display = ('interview_uuid','question','survey', 'user', 
+                        'submission_date', 'session_key', 'text')
+        list_filter = ('survey',)
         search_fields = ('text',)
         list_select_related=True
     class Meta:

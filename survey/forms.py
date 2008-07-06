@@ -19,11 +19,12 @@ import uuid
 
 
 class BaseAnswerForm(Form):
-    def __init__(self, question, user, interview_uuid, session_key, *args, **kwdargs):
+    def __init__(self, question, user, interview_uuid, session_key, survey, *args, **kwdargs):
         self.question = question
         self.session_key = session_key.lower()
         self.user = user
         self.interview_uuid = interview_uuid
+        self.survey = survey
         super(BaseAnswerForm, self).__init__(*args, **kwdargs)
         answer = self.fields['answer']
         answer.required = question.required
@@ -49,6 +50,7 @@ class BaseAnswerForm(Form):
             return
         ans = Answer()
         ans.question = self.question
+        ans.survey = self.survey
         ans.session_key = self.session_key
         if self.user.is_authenticated():
             ans.user = self.user
@@ -91,7 +93,7 @@ class ChoiceAnswer(BaseAnswerForm):
     def __init__(self, *args, **kwdargs):
         super(ChoiceAnswer, self).__init__(*args, **kwdargs)
         choices = []
-        for opt in self.question.choices.all().order_by("order"):
+        for opt in self.question.choice_group.choices.all().order_by("order"):
             if opt.get_image_url():
                 text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.get_image_url())
             else:
@@ -179,8 +181,8 @@ def forms_for_survey(survey, request):
         post = request.POST
     else:
         post = None
-    return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post)
-            for q in survey.questions.all().order_by("order") ]
+    return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, survey, prefix=sp+str(q.id), data=post)
+            for q in survey.questionnaire.questions.all().order_by("order") ]
 
 class CustomDateWidget(TextInput):
     #class Media:
@@ -234,7 +236,7 @@ class SurveyForm(ModelForm):
 class QuestionForm(ModelForm):
     class Meta:
         model= Question
-        exclude = ("survey")
+        #exclude = ("survey")
 
 class ChoiceForm(ModelForm):
     class Meta:
