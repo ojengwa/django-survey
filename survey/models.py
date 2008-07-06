@@ -202,7 +202,7 @@ class Survey(models.Model):
         if hasattr(self, '_session_key_count'):
             return self._submission_count
         self._submission_count = len(Answer.objects.filter(
-            question__survey=self.id).values('session_key').distinct())
+            survey=self.id).values('session_key').distinct())
         return self._submission_count
 
 
