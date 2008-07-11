@@ -279,8 +279,8 @@ class Choice(models.Model):
         ordering = ('choice_group', 'order')
 
     class Admin:
-        list_display = ('choice_group', 'text')
-        ordering = ('choice_group', 'order')
+        list_display = ('choice_group', 'text', 'order')
+        ordering = ('order',)
 
     @models.permalink
     def get_update_url(self):

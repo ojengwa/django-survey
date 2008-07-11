@@ -242,7 +242,7 @@ def question_update(request,survey_slug,question_id,
                     *args, **kw):
     survey = get_object_or_404(Survey, slug=survey_slug)
     question =  get_object_or_404(Question,id=question_id)
-    if question not in survey.questions.iterator():
+    if question not in survey.questionnaire.questions.iterator():
         raise Http404()
 
     if request.method == "POST":
@@ -305,7 +305,7 @@ def choice_add(request,question_id,
             new_choice.question = question
             new_choice.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"survey_slug":question.survey.slug,
+                                                {"survey_slug":None,
                                                  "group_slug":group_slug}))
     else:
         choice_form = ChoiceForm()

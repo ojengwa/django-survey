@@ -30,7 +30,7 @@ input[type="radio"] { vertical-align: top; }
             <a href='{% url question-add survey_slug=survey.slug %}'>{% trans "Add a question"  %}</a>
         </td>
     </tr>
-    {% for question in survey.questions.all|order_by:"order" %}
+    {% for question in survey.questionnaire.questions.all|order_by:"order" %}
         <tr>
             <td>{% trans "Question"  %}</td>
             <td>{{ question.order }}</td>
@@ -45,7 +45,7 @@ input[type="radio"] { vertical-align: top; }
                 <a href='{% url choice-add question_id=question.id %}'>{% trans "Add a choice"  %}</a>
             </td>
         </tr>
-        {% for choice in question.choices.all|order_by:"order" %}
+        {% for choice in question.choice_group.choices.all %}
             <tr>
                 <td>{% trans "choice"  %}</td>
                 <td>{{ choice.order }}</td>
