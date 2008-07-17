@@ -324,7 +324,7 @@ def choice_update(request,question_id, choice_id,
                 *args, **kw):
     question = get_object_or_404(Question, id=question_id)
     choice = get_object_or_404(Choice, id=choice_id)
-    if choice not in question.choices.iterator():
+    if choice not in question.choice_group.choices.iterator():
         raise Http404()
     if request.method == "POST":
         request_post = request.POST.copy()
