@@ -113,7 +113,7 @@ class Survey(models.Model):
                             help_text=_("This field appears on the public web site and should give an overview to the interviewee"),
                             blank=True)
     questionnaire = models.ForeignKey(Questionnaire, related_name='surveys',
-                                 verbose_name=_('questionnaires'))
+                                 verbose_name=_('questionnaires'),blank=True,default=True)
     
     ## Add validation on datetimes
     opens   = models.DateTimeField(_('survey starts accepting submissions on'))
