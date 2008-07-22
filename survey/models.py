@@ -13,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 
 
+
 QTYPE_CHOICES = (
     ('T', 'Text Input'),
     ('A', 'Text Area'),
@@ -32,8 +33,7 @@ class SurveyManager(models.Manager):
 class Survey(models.Model):
 
     title   = models.CharField(_('survey title'), max_length=80)
-    slug    = models.SlugField(_('slug'),
-                            prepopulate_from=("title",), unique=True)
+    slug    = models.SlugField(_('slug'), unique=True)
     description= models.TextField(verbose_name=_("description"),
                             help_text=_("This field appears on the public web site and should give an overview to the interviewee"),
                             blank=True)
@@ -139,9 +139,6 @@ class Survey(models.Model):
     def __unicode__(self):
         return u' - '.join([self.slug, self.title])
 
-    class Admin:
-        list_display = ('__unicode__', 'visible', 'public',
-                        'opens', 'closes', 'open')
 
     @models.permalink
     def get_absolute_url(self):
@@ -228,8 +225,6 @@ class Choice(models.Model):
 
     order = models.IntegerField(verbose_name = _("order"),
                                 null=True, blank=True, core=True)
-    class Admin:
-        pass
 
     @models.permalink
     def get_update_url(self):
@@ -266,13 +261,6 @@ class Answer(models.Model):
     interview_uuid = models.CharField(_("Interview uniqe identifier"),max_length=36)
 
 
-    class Admin:
-        list_display = ('interview_uuid','question','user', 'submission_date',
-                        'session_key', 'text')
-
-        #list_filter = ('question__survey',)
-        search_fields = ('text',)
-        list_select_related=True
     class Meta:
         # unique_together = (('question', 'session_key'),)
         permissions = (("view_answers",     "Can view survey answers"),

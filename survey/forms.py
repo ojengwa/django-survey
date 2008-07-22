@@ -1,14 +1,14 @@
 from models import QTYPE_CHOICES, Answer, Survey, Question, Choice
 from django.conf import settings
-from django.newforms import BaseForm, Form, ValidationError
-from django.newforms import CharField, ChoiceField, SplitDateTimeField,\
+from django.forms import BaseForm, Form, ValidationError
+from django.forms import CharField, ChoiceField, SplitDateTimeField,\
                             CheckboxInput, BooleanField,FileInput,\
                             FileField, ImageField
-from django.newforms import Textarea, TextInput, Select, RadioSelect,\
+from django.forms import Textarea, TextInput, Select, RadioSelect,\
                             CheckboxSelectMultiple, MultipleChoiceField,\
                             SplitDateTimeWidget,MultiWidget, MultiValueField
-from django.newforms.forms import BoundField
-from django.newforms.models import ModelForm
+from django.forms.forms import BoundField
+from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.template import Context, loader
@@ -39,7 +39,7 @@ class BaseAnswerForm(Form):
         # we could just get_template_from_string to some default
         # or we could pass in the template name ... whatever we want
         # import pdb; pdb.set_trace()
-        t = loader.get_template('newforms/form.html')
+        t = loader.get_template('forms/form.html')
         return t.render(c)
 
     def save(self, commit=True):
@@ -175,7 +175,7 @@ def forms_for_survey(survey, request):
     session_key = request.session.session_key.lower()
     login_user = request.user
     random_uuid = uuid.uuid4().hex
-    if request.POST: # bug in newforms
+    if request.POST: # bug in forms
         post = request.POST
     else:
         post = None

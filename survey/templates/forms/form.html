@@ -2,7 +2,7 @@
     {% if forloop.first %}
         <div {{ bound_field.form.question.qstyle|safe}}>
     {% endif %}
-    {% include "newforms/field.html" %}
+    {% include "forms/field.html" %}
     {% if forloop.first %}
         </div>
     {% endif %}

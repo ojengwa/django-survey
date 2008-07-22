@@ -1,8 +1,12 @@
 from django.conf.urls.defaults import patterns, url
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.list_detail import object_list
+from django.conf.urls.defaults import *
+
 
 from models import Survey
+
+
 from views import answers_list, answers_detail,\
                 survey_detail, survey_edit, survey_add,\
                 editable_survey_list, survey_delete, survey_update,\
