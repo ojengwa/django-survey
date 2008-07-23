@@ -29,7 +29,7 @@ class BaseAnswerForm(Form):
         answer.required = question.required
         answer.label = question.text
         if not question.required:
-            answer.help_text = unicode(_('(this question is optional)'))
+            answer.help_text = unicode(_('this question is optional'))
 
     def as_template(self):
         "Helper function for fieldsting fields data from form."

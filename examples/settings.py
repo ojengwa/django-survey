@@ -1,7 +1,9 @@
 # Django settings for {{ project_name }} project.
 import os
 
-ROOTDIR = os.path.abspath(os.path.dirname(__file__))
+PROJECT_DIR = os.path.abspath(os.path.dirname(__file__))
+ROOT_DIR = os.path.split(PROJECT_DIR)[0]
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -12,7 +14,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3'    # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = ROOTDIR+'/examples.db'  # Or path to database file if using sqlite3.
+DATABASE_NAME = PROJECT_DIR+'/examples.db'  # Or path to database file if using sqlite3.
 DATABASE_USER = ''             # Not used with sqlite3.
 DATABASE_PASSWORD = ''         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
@@ -40,9 +42,11 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
+LOCALE_PATHS=(os.path.join(ROOT_DIR,"survey"),)
+
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ROOTDIR + '/site_media/'
+MEDIA_ROOT = PROJECT_DIR + '/site_media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -79,7 +83,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    ROOTDIR + '/templates/',
+    PROJECT_DIR + '/templates/',
 )
 
 INSTALLED_APPS = (
