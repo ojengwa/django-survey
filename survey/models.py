@@ -177,9 +177,7 @@ class Question(models.Model):
     choice_num_max = models.IntegerField(_("maximum number of choices"),
                                          null=True, blank=True,)
     # TODO: Modify the forms to respect the style defined by this attr (html,css)
-    template_name = models.CharField(_('template name'),max_length=150,
-                                     null=True, blank=True,
-        help_text=_("This field is used to define a custom template (Example: 'question_form.html')."))
+
     qstyle = models.TextField(_("Html Style"),null=True, blank=True)
     ## model validation for requiring choices.
 

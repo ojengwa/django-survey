@@ -39,7 +39,7 @@ class BaseAnswerForm(Form):
         # we could just get_template_from_string to some default
         # or we could pass in the template name ... whatever we want
         # import pdb; pdb.set_trace()
-        t = loader.get_template( self.question.template_name or 'forms/form.html')
+        t = loader.get_template('forms/form.html')
         return t.render(c)
 
     def save(self, commit=True):
