@@ -1,10 +1,6 @@
 {% extends "survey/base.html" %}{% load i18n %}
 {% block scripts %}
-<script type="text/javascript" src="/admin/jsi18n/"></script>
-<script type="text/javascript" src="/media/js/core.js"></script>
-<script type="text/javascript" src="/media/js/calendar.js"></script>
-<script type="text/javascript" src="/media/js/admin/DateTimeShortcuts.js"></script>
-
+{{form.media|safe}}
 {% endblock %}
 {% block styles %}
 <link rel="stylesheet" type="text/css" href="/media/css/forms.css" />

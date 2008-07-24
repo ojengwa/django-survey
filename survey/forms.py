@@ -183,17 +183,24 @@ def forms_for_survey(survey, request):
             for q in survey.questions.all().order_by("order") ]
 
 class CustomDateWidget(TextInput):
-    #class Media:
-    #    js = (settings.ADMIN_MEDIA_PREFIX + "js/calendar.js",
-    #          settings.ADMIN_MEDIA_PREFIX + "js/admin/DateTimeShortcuts.js")
+    class Media:
+        js = ('/admin/jsi18n/',
+              settings.ADMIN_MEDIA_PREFIX + 'js/core.js',
+              settings.ADMIN_MEDIA_PREFIX + "js/calendar.js",
+              settings.ADMIN_MEDIA_PREFIX + "js/admin/DateTimeShortcuts.js",
+              )
 
     def __init__(self, attrs={}):
         super(CustomDateWidget, self).__init__(attrs={'class': 'vDateField', 'size': '10'})
 
 class CustomTimeWidget(TextInput):
-    #class Media:
-    #    js = (settings.ADMIN_MEDIA_PREFIX + "js/calendar.js",
-    #          settings.ADMIN_MEDIA_PREFIX + "js/admin/DateTimeShortcuts.js")
+    class Media:
+        js = ('/admin/jsi18n/',
+              settings.ADMIN_MEDIA_PREFIX + 'js/core.js',
+              settings.ADMIN_MEDIA_PREFIX + "js/calendar.js",
+              settings.ADMIN_MEDIA_PREFIX + "js/admin/DateTimeShortcuts.js",
+              )
+
 
     def __init__(self, attrs={}):
         super(CustomTimeWidget, self).__init__(attrs={'class': 'vTimeField', 'size': '8'})
