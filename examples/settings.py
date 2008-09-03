@@ -97,7 +97,9 @@ INSTALLED_APPS = (
     'survey',
 )
 
+
 LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
 
 try:
     from localsettings import *

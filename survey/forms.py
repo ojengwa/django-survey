@@ -92,9 +92,9 @@ class ChoiceAnswer(BaseAnswerForm):
         super(ChoiceAnswer, self).__init__(*args, **kwdargs)
         choices = []
         for opt in self.question.choices.all().order_by("order"):
-            if opt.get_image_url():
-                text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.get_image_url())
-            else:
+            try:
+                text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.image.url())
+            except ValueError:
                 text = opt.text
             choices.append((str(opt.id),text))
 

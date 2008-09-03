@@ -162,14 +162,14 @@ class Question(models.Model):
     qtype = models.CharField(_('question type'), max_length=2,
                                 choices=QTYPE_CHOICES)
     required = models.BooleanField(_('required'), default=True)
-    text     = models.TextField(_('question text'), core=True)
+    text     = models.TextField(_('question text'))
     order = models.IntegerField(verbose_name = _("order"),
-                                null=True, blank=True, core=True)
+                                null=True, blank=True)
     # TODO: Add a button or check box to remove the file. There are several
     # recipes floating on internet. I like the one with a custom widget
     image = models.ImageField(verbose_name=_("image"),
                               upload_to= "survey/images/questions" + "/%Y/%m/%d/",
-                              null=True, blank= True, core=False)
+                              null=True, blank= True)
     # Define if the user must select at least 'choice_num_min' number of
     # choices and at most 'choice_num_max'
     choice_num_min = models.IntegerField(_("minimun number of choices"),
@@ -217,7 +217,7 @@ class Choice(models.Model):
     ## validate question is of proper qtype
     question = models.ForeignKey(Question, related_name='choices',
                                  verbose_name=_('question'))
-    text = models.CharField(_('choice text'), max_length=500, core=True)
+    text = models.CharField(_('choice text'), max_length=500)
     # TODO: Add a button or check box to remove the file. There are several
     # recipes floating on internet. I like the one with a custom widget
     image = models.ImageField(verbose_name = _("image"),
@@ -225,7 +225,7 @@ class Choice(models.Model):
                               null=True ,blank= True)
 
     order = models.IntegerField(verbose_name = _("order"),
-                                null=True, blank=True, core=True)
+                                null=True, blank=True)
 
     @models.permalink
     def get_update_url(self):

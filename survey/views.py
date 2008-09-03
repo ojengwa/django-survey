@@ -47,8 +47,7 @@ def _survey_redirect(request, survey,
         return HttpResponseRedirect(request.REQUEST['next'])
     if survey.answers_viewable_by(request.user):
         return HttpResponseRedirect(reverse('survey-results', None, (),
-                                                {'survey_slug': survey.slug,
-                                                 "group_slug":group_slug}))
+                                                {'survey_slug': survey.slug}))
 
     # For this survey, have they answered any questions?
     if (hasattr(request, 'session') and Answer.objects.filter(
@@ -58,7 +57,6 @@ def _survey_redirect(request, survey,
         return HttpResponseRedirect(
             reverse('answers-detail', None, (),
                     {'survey_slug': survey.slug,
-                     "group_slug":group_slug,
                      'key': request.session.session_key.lower()}))
 
     # go to thank you page
@@ -78,8 +76,7 @@ def survey_detail(request, survey_slug,
     if survey.closed:
         if survey.answers_viewable_by(request.user):
             return HttpResponseRedirect(reverse('survey-results', None, (),
-                                                {'survey_slug': survey_slug,
-                                                 'group_slug': group_slug}))
+                                                {'survey_slug': survey_slug}))
         raise Http404 #(_('Page not found.')) # unicode + exceptions = bad
     # if user has a session and have answered some questions
     # and the survey does not accept multiple answers,
@@ -150,7 +147,7 @@ def survey_add(request,
                 group = get_object_or_404(group_qs,slug=group_slug)
                 new_survey.recipient = group
             new_survey.save()
-            return HttpResponseRedirect(reverse("surveys-editable",kwargs={"group_slug":group_slug,}))
+            return HttpResponseRedirect(reverse("surveys-editable",kwargs={}))
 
 
     else:
@@ -176,7 +173,7 @@ def survey_update(request, survey_slug,
             new_survey.editable_by = request.user
             new_survey.slug = slugify(new_survey.title)
             new_survey.save()
-            return HttpResponseRedirect(reverse("survey-edit",None,(),{"group_slug":group_slug,"survey_slug":survey_slug}))
+            return HttpResponseRedirect(reverse("survey-edit",None,(),{"survey_slug":survey_slug}))
 
 
     else:
@@ -201,7 +198,7 @@ def survey_delete(request,survey_slug=None,
     request_post = request.POST.copy()
     return delete_object(request, slug=survey_slug,
         **{"model":Survey,
-         "post_delete_redirect": reverse("surveys-editable",kwargs={'group_slug':group_slug}),
+         "post_delete_redirect": reverse("surveys-editable",kwargs={}),
          "template_object_name":"survey",
          "login_required": True,
          'extra_context': {'title': _('Delete survey')}
@@ -223,8 +220,7 @@ def question_add(request,survey_slug,
             new_question.survey = survey
             new_question.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"survey_slug":survey_slug,
-                                                 "group_slug":group_slug}))
+                                                {"survey_slug":survey_slug}))
 
     else:
         question_form = QuestionForm()
@@ -255,11 +251,10 @@ def question_update(request,survey_slug,question_id,
             new_question.survey = survey
             new_question.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"survey_slug":survey_slug,
-                                                 "group_slug":group_slug}))
+                                                {"survey_slug":survey_slug}))
     else:
         question_form = QuestionForm(instance=question)
-    #import pdb; pdb.set_trace()
+
     return render_to_response(template_name,
                               {'title': _("Update question"),
                                'question' : question,
@@ -305,8 +300,7 @@ def choice_add(request,question_id,
             new_choice.question = question
             new_choice.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"survey_slug":question.survey.slug,
-                                                 "group_slug":group_slug}))
+                                                {"survey_slug":question.survey.slug}))
     else:
         choice_form = ChoiceForm()
 
@@ -335,8 +329,7 @@ def choice_update(request,question_id, choice_id,
             new_choice.question = question
             new_choice.save()
             return HttpResponseRedirect(reverse("survey-edit",None,(),
-                                                {"survey_slug":question.survey.slug,
-                                                 "group_slug":group_slug}))
+                                                {"survey_slug":question.survey.slug}))
     else:
         choice_form = ChoiceForm(instance=choice)
     return render_to_response(template_name,
@@ -360,8 +353,7 @@ def choice_delete(request,survey_slug,choice_id,
     return delete_object(request, object_id=choice_id,
         **{"model":Choice,
          "post_delete_redirect": reverse("survey-edit",None,(),
-                                         {"survey_slug":survey_slug,
-                                          "group_slug":group_slug}),
+                                         {"survey_slug":survey_slug}),
          "template_object_name":"choice",
          "login_required": True,
          'extra_context': {'title': _('Delete choice')}

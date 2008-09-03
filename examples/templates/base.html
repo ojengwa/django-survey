@@ -26,8 +26,8 @@
         <div id="user-tools">
             {% if user.is_authenticated %}
                 {% trans "Welcome" noop %} <strong>{{user}}</strong> -
-                - <a href="{% url django.contrib.auth.views.password_change %}">{% trans 'Change password' %}</a>
-                / <a href="{% url django.contrib.auth.views.logout %}">{% trans 'Log out' %}</a> /
+                - <a href="/admin/password_change/">{% trans 'Change password' %}</a>
+                / <a href="/admin/logout/">{% trans 'Log out' %}</a> /
             {%endif%}
             <a href="/admin/">admin</a>
         </div>
