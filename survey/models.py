@@ -172,7 +172,7 @@ class Question(models.Model):
                               null=True, blank= True)
     # Define if the user must select at least 'choice_num_min' number of
     # choices and at most 'choice_num_max'
-    choice_num_min = models.IntegerField(_("minimun number of choices"),
+    choice_num_min = models.IntegerField(_("minimum number of choices"),
                                          null=True, blank=True,)
     choice_num_max = models.IntegerField(_("maximum number of choices"),
                                          null=True, blank=True,)
@@ -256,10 +256,10 @@ class Answer(models.Model):
                                  editable=False)
     ## sessions expire, survey results do not, so keep the key.
     session_key = models.CharField(_('session key'), max_length=40)
-    text = models.TextField(_('anwser text'))
+    text = models.TextField(_('answer text'))
     submission_date = models.DateTimeField(auto_now=True)
     # UUID is used to calculate the number of interviews
-    interview_uuid = models.CharField(_("Interview uniqe identifier"),max_length=36)
+    interview_uuid = models.CharField(_("Interview unique identifier"),max_length=36)
 
 
     class Meta:

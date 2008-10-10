@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-03 12:25-0400\n"
+"POT-Creation-Date: 2008-10-10 17:19-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Igor Tamara <igor@tamarapatino.org>\n"
 "Language-Team: Spanish <igor@tamarapatino.org>\n"
@@ -137,7 +137,7 @@ msgid "image"
 msgstr "imagen"
 
 #: models.py:175
-msgid "minimun number of choices"
+msgid "minimum number of choices"
 msgstr "cantidad mínima de opciones"
 
 #: models.py:177
@@ -165,11 +165,11 @@ msgid "session key"
 msgstr "llave de sesión"
 
 #: models.py:259
-msgid "anwser text"
+msgid "answer text"
 msgstr "texto de respuesta"
 
 #: models.py:262
-msgid "Interview uniqe identifier"
+msgid "Interview unique identifier"
 msgstr "identificador único de entrevista"
 
 #: views.py:64

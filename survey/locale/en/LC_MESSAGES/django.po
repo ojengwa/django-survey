@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-03 12:25-0400\n"
+"POT-Creation-Date: 2008-10-10 17:19-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -133,7 +133,7 @@ msgid "image"
 msgstr ""
 
 #: models.py:175
-msgid "minimun number of choices"
+msgid "minimum number of choices"
 msgstr ""
 
 #: models.py:177
@@ -161,11 +161,11 @@ msgid "session key"
 msgstr ""
 
 #: models.py:259
-msgid "anwser text"
+msgid "answer text"
 msgstr ""
 
 #: models.py:262
-msgid "Interview uniqe identifier"
+msgid "Interview unique identifier"
 msgstr ""
 
 #: views.py:64
