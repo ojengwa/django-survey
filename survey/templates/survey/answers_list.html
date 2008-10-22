@@ -32,7 +32,7 @@
 {% if question.choices.count %}
     {% for choice in question.choices.iterator %}
         <table border="0" cellpadding="0" cellspacing="0" class="bar">
-            <caption class="barAnswer">{% ifequal question.qtype "I" %}<img src="{{ choice.text }}"/>{% else %}{{ choice.text }}{% endifequal %}</caption>
+            <caption class="barAnswer">{{ choice.text }}{% ifequal question.qtype "I" %}<br/><img src="{{ choice.image.url }}"/>{% endifequal %}</caption>
             <tr>
                 <td style="width: {% widthratio choice.count question.answer_count 100 %}%" class="barColor">{% if choice.count %}&nbsp;{% endif %}</td>
                 <td class="barPercent"><strong class="barVotes">{{ choice.count }}&nbsp;{% trans "vote" %}{{ choice.count|pluralize:"s" }}</strong>&nbsp;/&nbsp;{% widthratio choice.count question.answer_count 100 %}%</td>

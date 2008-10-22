@@ -93,7 +93,7 @@ class ChoiceAnswer(BaseAnswerForm):
         choices = []
         for opt in self.question.choices.all().order_by("order"):
             try:
-                text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.image.url())
+                text = mark_safe(opt.text + '<br/><img src="%s"/>'%opt.image.url)
             except ValueError:
                 text = opt.text
             choices.append((str(opt.id),text))
@@ -116,7 +116,7 @@ class ChoiceImage(ChoiceAnswer):
     def __init__(self, *args, **kwdargs):
         super(ChoiceImage, self).__init__(*args, **kwdargs)
         #import pdb; pdb.set_trace()
-        self.choices = [ (k,mark_safe('<img src="'+v+'"/>')) for k,v in self.choices ]
+        self.choices = [ (k,mark_safe(v)) for k,v in self.choices ]
         self.fields['answer'].widget = RadioSelect(choices=self.choices)
 
 class ChoiceCheckbox(BaseAnswerForm):
@@ -126,8 +126,8 @@ class ChoiceCheckbox(BaseAnswerForm):
         super(ChoiceCheckbox, self).__init__(*args, **kwdargs)
         choices = []
         for opt in self.question.choices.all().order_by("order"):
-            if opt.get_image_url():
-                text = mark_safe(opt.text + '<br /><img src="%s" />'%opt.get_image_url())
+            if opt.image.url:
+                text = mark_safe(opt.text + '<br />' + opt.image.url)
             else:
                 text = opt.text
             choices.append((str(opt.id),text))
