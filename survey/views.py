@@ -23,7 +23,7 @@ from survey.models import Survey, Answer, Question, Choice
 
 def _survey_redirect(request, survey,
                     group_slug=None, group_slug_field=None, group_qs=None,
-                    template_name = 'survey/survey_detail.html',
+                    template_name = 'survey/thankyou.html',
                     extra_context=None,
                     *args, **kw):
     """
@@ -60,7 +60,7 @@ def _survey_redirect(request, survey,
                      'key': request.session.session_key.lower()}))
 
     # go to thank you page
-    return render_to_response('survey/thankyou.html',
+    return render_to_response(template_name,
                               {'survey': survey, 'title': _('Thank You')},
                               context_instance=RequestContext(request))
 
@@ -115,11 +115,11 @@ def survey_detail(request, survey_slug,
 @login_required()
 def survey_edit(request,survey_slug,
                group_slug=None, group_slug_field=None, group_qs=None,
-               template_name = "survey/editable_survey_list.html",
+               template_name = "survey/survey_edit.html",
                extra_context=None,
                *args, **kw):
     survey = get_object_or_404(Survey, slug=survey_slug)
-    return render_to_response('survey/survey_edit.html',
+    return render_to_response(template_name,
                               {'survey': survey,
                                'group_slug': group_slug},
                               context_instance=RequestContext(request))
@@ -131,7 +131,7 @@ def survey_edit(request,survey_slug,
 @login_required()
 def survey_add(request,
                group_slug=None, group_slug_field=None, group_qs=None,
-               template_name = "survey/editable_survey_list.html",
+               template_name = 'survey/survey_add.html',
                extra_context=None,
                *args, **kw):
 
@@ -152,7 +152,7 @@ def survey_add(request,
 
     else:
         survey_form = SurveyForm()
-    return render_to_response('survey/survey_add.html',
+    return render_to_response(template_name,
                               {'title': _("Add a survey"),
                                'form' : survey_form},
                               context_instance=RequestContext(request))
@@ -178,10 +178,10 @@ def survey_update(request, survey_slug,
 
     else:
         survey = get_object_or_404(Survey, slug=survey_slug)
-        print "survey : ",survey
         survey_form = SurveyForm(instance=survey)
     return render_to_response(template_name,
-                              {'title': _("Add a survey"),
+                              {'title': _("Update '%s'") % survey.title,
+                               'survey' : survey,
                                'form' : survey_form},
                               context_instance=RequestContext(request))
 
