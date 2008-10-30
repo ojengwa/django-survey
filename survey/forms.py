@@ -92,9 +92,9 @@ class ChoiceAnswer(BaseAnswerForm):
         super(ChoiceAnswer, self).__init__(*args, **kwdargs)
         choices = []
         for opt in self.question.choices.all().order_by("order"):
-            try:
+            if opt.image and opt.image.url:
                 text = mark_safe(opt.text + '<br/><img src="%s"/>'%opt.image.url)
-            except ValueError:
+            else:
                 text = opt.text
             choices.append((str(opt.id),text))
 
@@ -126,7 +126,7 @@ class ChoiceCheckbox(BaseAnswerForm):
         super(ChoiceCheckbox, self).__init__(*args, **kwdargs)
         choices = []
         for opt in self.question.choices.all().order_by("order"):
-            if opt.image.url:
+            if opt.image and opt.image.url:
                 text = mark_safe(opt.text + '<br />' + opt.image.url)
             else:
                 text = opt.text
