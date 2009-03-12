@@ -10,13 +10,6 @@ class ChoiceInline(admin.TabularInline):
     fields = ('text', 'order',)
     template = 'admin/survey/choice/edit_inline_tabular.html'
 
-class AnswerInline(admin.TabularInline):
-    """
-    A newforms-admin inline option class for the ``Answer`` model.
-    """
-    model = Answer
-    extra = 1
-    fields = ('text',)
 
 class QuestionOptions(admin.ModelAdmin):
     """
@@ -24,11 +17,12 @@ class QuestionOptions(admin.ModelAdmin):
     """
     list_select_related = True
     list_filter = ('survey', 'qtype')
-    #filter_horizontal = ('survey',)
     list_display_links = ('text',)
     list_display = ('survey', 'text', 'qtype', 'required')
     search_fields = ('text',)
-    inlines = [ChoiceInline, AnswerInline]
+    inlines = [
+        ChoiceInline,
+        ]
 
 class QuestionInline(admin.TabularInline):
     """
