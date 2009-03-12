@@ -68,6 +68,7 @@ def survey_detail(request, survey_slug,
                group_slug=None, group_slug_field=None, group_qs=None,
                template_name = 'survey/survey_detail.html',
                extra_context=None,
+               allow_edit_existing_answers=False,
                *args, **kw):
     """
 
@@ -83,7 +84,7 @@ def survey_detail(request, survey_slug,
     # go ahead and redirect to the answers, or a thank you
     if (hasattr(request, 'session') and
         survey.has_answers_from(request.session.session_key) and
-        not survey.allows_multiple_interviews):
+        not survey.allows_multiple_interviews and not allow_edit_existing_answers):
         return _survey_redirect(request, survey,group_slug=group_slug)
     # if the survey is restricted to authentified user redirect
     # annonymous user to the login page
@@ -96,7 +97,7 @@ def survey_detail(request, survey_slug,
         request.session[skey] = (request.session.get(skey, False) or
                                  request.method == 'POST')
         request.session.modified = True ## enforce the cookie save.
-    survey.forms = forms_for_survey(survey, request)
+    survey.forms = forms_for_survey(survey, request, allow_edit_existing_answers)
     if (request.POST and all(form.is_valid() for form in survey.forms)):
         for form in survey.forms:
             form.save()

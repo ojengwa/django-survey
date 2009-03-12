@@ -19,17 +19,35 @@ import uuid
 
 
 class BaseAnswerForm(Form):
-    def __init__(self, question, user, interview_uuid, session_key, *args, **kwdargs):
+    def __init__(self, question, user, interview_uuid, session_key, edit_existing=False, *args, **kwdargs):
         self.question = question
         self.session_key = session_key.lower()
         self.user = user
         self.interview_uuid = interview_uuid
+        self.answer = None
+        initial = None
+        if edit_existing:
+            if not user.is_authenticated():
+                query = question.answers.filter(session_key=session_key)
+            else:
+                query = question.answers.filter(user=user)
+            if query.count():
+                self.answer = query[0]
+                initial = self.answer.text
+                if 'initial' not in kwdargs:
+                    kwdargs['initial'] = {}
+                if 'answer' not in kwdargs['initial']:
+                    kwdargs['initial']['answer'] = self.answer.text
         super(BaseAnswerForm, self).__init__(*args, **kwdargs)
         answer = self.fields['answer']
         answer.required = question.required
         answer.label = question.text
         if not question.required:
             answer.help_text = unicode(_('this question is optional'))
+        if initial is not None and initial != answer.initial:
+            if kwdargs['initial']['answer'] != answer.initial:
+                ## rats.. we are a choice list style and need to map to id.
+                answer.initial = initial
 
     def as_template(self):
         "Helper function for fieldsting fields data from form."
@@ -47,7 +65,9 @@ class BaseAnswerForm(Form):
             if self.fields['answer'].required:
                 raise ValidationError, _('This field is required.')
             return
-        ans = Answer()
+        ans = self.answer
+        if ans is None:
+            ans = Answer()
         ans.question = self.question
         ans.session_key = self.session_key
         if self.user.is_authenticated():
@@ -91,16 +111,23 @@ class ChoiceAnswer(BaseAnswerForm):
     def __init__(self, *args, **kwdargs):
         super(ChoiceAnswer, self).__init__(*args, **kwdargs)
         choices = []
+        choices_dict = {}
+        self.initial_answer = None
         for opt in self.question.choices.all().order_by("order"):
             if opt.image and opt.image.url:
                 text = mark_safe(opt.text + '<br/><img src="%s"/>'%opt.image.url)
             else:
                 text = opt.text
+            if self.answer is not None and self.answer.text == opt.text:
+                self.initial_answer = str(opt.id)
             choices.append((str(opt.id),text))
-
+            choices_dict[str(opt.id)] = opt.text
         self.choices = choices
-        self.choices_dict = dict(choices)
+        self.choices_dict = choices_dict
         self.fields['answer'].choices = choices
+        self.fields['answer'].initial = self.initial_answer
+        if self.initial_answer is not None:
+            self.initial['answer'] = self.initial_answer
     def clean_answer(self):
         key = self.cleaned_data['answer']
         if not key and self.fields['answer'].required:
@@ -125,15 +152,23 @@ class ChoiceCheckbox(BaseAnswerForm):
     def __init__(self, *args, **kwdargs):
         super(ChoiceCheckbox, self).__init__(*args, **kwdargs)
         choices = []
+        choices_dict = {}
+        self.initial_answer = None
         for opt in self.question.choices.all().order_by("order"):
+            text = opt.text
             if opt.image and opt.image.url:
                 text = mark_safe(opt.text + '<br />' + opt.image.url)
-            else:
-                text = opt.text
             choices.append((str(opt.id),text))
+            choices_dict[str(opt.id)] = opt.text
+            if self.answer is not None and self.answer.text == opt.text:
+                self.initial_answer = str(opt.id)
+
         self.choices = choices
-        self.choices_dict = dict(choices)
+        self.choices_dict = choices_dict
         self.fields['answer'].choices = choices
+        self.fields['answer'].initial = self.initial_answer
+        if self.initial_answer is not None:
+            self.initial['answer'] = self.initial_answer
     def clean_answer(self):
 
         keys = self.cleaned_data['answer']
@@ -169,7 +204,7 @@ QTYPE_FORM = {
     'C': ChoiceCheckbox,
 }
 
-def forms_for_survey(survey, request):
+def forms_for_survey(survey, request, edit_existing=False):
     ## add session validation to base page.
     sp = str(survey.id) + '_'
     session_key = request.session.session_key.lower()
@@ -179,7 +214,7 @@ def forms_for_survey(survey, request):
         post = request.POST
     else:
         post = None
-    return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post)
+    return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post, edit_existing=edit_existing)
             for q in survey.questions.all().order_by("order") ]
 
 class CustomDateWidget(TextInput):
