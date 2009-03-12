@@ -13,8 +13,8 @@
         <td>{{ survey.status }}</td>
         <td>
         {% if user|can_view_answers:survey %}
-            {% if survey.submission_count %}
-                <a href='{% url survey-results survey_slug=survey.slug %}'>{{ survey.submission_count }} Submission{{ survey.submission_count|pluralize:"s" }}</a>
+            {% if survey.interview_count %}
+                <a href='{% url survey-results survey_slug=survey.slug %}'>{{ survey.interview_count }} Submission{{ survey.interview_count|pluralize:"s" }}</a>
             {% else %}
                 {% trans "No Submissions."%}
             {% endif %}
