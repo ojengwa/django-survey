@@ -32,8 +32,8 @@ class SurveyManager(models.Manager):
 
 class Survey(models.Model):
 
-    title   = models.CharField(_('survey title'), max_length=80)
-    slug    = models.SlugField(_('slug'), unique=True)
+    title   = models.CharField(_('survey title'), max_length=255)
+    slug    = models.SlugField(_('slug'), max_length=255, unique=True)
     description= models.TextField(verbose_name=_("description"),
                             help_text=_("This field appears on the public web site and should give an overview to the interviewee"),
                             blank=True)
