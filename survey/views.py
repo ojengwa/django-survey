@@ -41,6 +41,9 @@ def _survey_redirect(request, survey,
 
     If all else fails, go to the Thank You page.
     """
+    if kw.has_key("explicit"):
+        next_url = kw["explicit"]
+        return HttpResponseRedirect( next_url )
     if ('next' in request.REQUEST and
         request.REQUEST['next'].startswith('http:') and
         request.REQUEST['next'] != request.path):
@@ -101,7 +104,7 @@ def survey_detail(request, survey_slug,
     if (request.POST and all(form.is_valid() for form in survey.forms)):
         for form in survey.forms:
             form.save()
-        return _survey_redirect(request, survey,group_slug=group_slug)
+        return _survey_redirect( request, survey,group_slug=group_slug, explicit=survey.post_survery_url )
     # Redirect either to 'survey.template_name' if this attribute is set or
     # to the default template
     return render_to_response(survey.template_name or template_name,

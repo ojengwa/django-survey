@@ -20,7 +20,8 @@ QTYPE_CHOICES = (
     ('S', 'Select One Choice'),
     ('R', 'Radio List'),
     ('I', 'Radio Image List'),
-    ('C', 'Checkbox List')
+    ('C', 'Checkbox List'),
+    ('G', 'Option Grid')
 )
 
 class SurveyManager(models.Manager):
@@ -61,7 +62,10 @@ class Survey(models.Model):
     recipient_type = models.ForeignKey(ContentType,null=True)
     recipient_id = models.PositiveIntegerField(null=True)
     recipient = generic.GenericForeignKey('recipient_type', 'recipient_id')
-
+    
+    # A URL to show to the user after the survey is done.
+    post_survery_url = models.CharField(_('post_survery_url'), max_length=256, help_text="A URL to display after the survey is finished.", default=None)
+    
     objects = SurveyManager()
 
     @property
@@ -163,6 +167,7 @@ class Question(models.Model):
                                 choices=QTYPE_CHOICES)
     required = models.BooleanField(_('required'), default=True)
     text     = models.TextField(_('question text'))
+    extra_headers     = models.TextField(_('extra_headers'),default="",null=True, blank=True)
     order = models.IntegerField(verbose_name = _("order"),
                                 null=True, blank=True)
     # TODO: Add a button or check box to remove the file. There are several
@@ -224,8 +229,8 @@ class Choice(models.Model):
                               upload_to= "survey/images/questions" + "/%Y/%m/%d/",
                               null=True ,blank= True)
 
-    order = models.IntegerField(verbose_name = _("order"),
-                                null=True, blank=True)
+    order = models.FloatField(verbose_name = _("order"),
+                                null=True, blank=True, default=0.0)
 
     @models.permalink
     def get_update_url(self):

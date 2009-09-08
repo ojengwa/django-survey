@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.template import Context, loader
 from django.template.defaultfilters import slugify
+from django.forms import fields
 
 from itertools import chain
 import uuid
@@ -63,7 +64,11 @@ class BaseAnswerForm(Form):
     def save(self, commit=True):
         if not self.cleaned_data['answer']:
             if self.fields['answer'].required:
-                raise ValidationError, _('This field is required.')
+                
+                import pdb
+                pdb.set_trace()
+                
+                raise ValidationError, _('Please answer this question.')
             return
         ans = self.answer
         if ans is None:
@@ -131,7 +136,7 @@ class ChoiceAnswer(BaseAnswerForm):
     def clean_answer(self):
         key = self.cleaned_data['answer']
         if not key and self.fields['answer'].required:
-            raise ValidationError, _('This field is required.')
+            raise ValidationError, _('Please make a choice.')
         return self.choices_dict.get(key, key)
 
 class ChoiceRadio(ChoiceAnswer):
@@ -169,19 +174,21 @@ class ChoiceCheckbox(BaseAnswerForm):
         self.fields['answer'].initial = self.initial_answer
         if self.initial_answer is not None:
             self.initial['answer'] = self.initial_answer
+    
     def clean_answer(self):
-
         keys = self.cleaned_data['answer']
         if not keys and self.fields['answer'].required:
-            raise ValidationError, _('This field is required.')
+            raise ValidationError, _('Please choose an answer.')
         for key in keys:
             if not key and self.fields['answer'].required:
                 raise ValidationError, _('Invalid Choice.')
         return [self.choices_dict.get(key, key) for key in keys]
+    
+    
     def save(self, commit=True):
         if not self.cleaned_data['answer']:
             if self.fields['answer'].required:
-                raise ValidationError, _('This field is required.')
+                raise ValidationError, _('I need an answer here please.')
             return
         ans_list = []
         for text in self.cleaned_data['answer']:
@@ -193,6 +200,140 @@ class ChoiceCheckbox(BaseAnswerForm):
             ans_list.append(ans)
         return ans_list
 
+class ChoiceOptionGridWidget( MultiWidget ):
+    def decompress(self, inp=None, *args, **kwargs ):
+        if inp==None:
+            return []
+        
+        return inp.split(",")
+    
+    def format_output( self, rendered_widgets ):
+        output = ""
+        
+        for w,t in zip(self.widgets, rendered_widgets):
+            output += "<div class='optiongrid_label'>%s</div>\n" % w.attrs["question_text"]
+            output += t
+            
+        return output
+
+    
+
+class ChoiceOptionGridField( MultiValueField ):
+    
+    def compress(self, inp=None, *args, **kwargs ):
+        if inp:
+            result = ",".join(inp)
+        else:
+            result = ""
+        
+        return result
+    
+    def clean(self, value):
+        """
+        Validates every value in the given list. A value is validated against
+        the corresponding Field in self.fields.
+
+        For example, if this MultiValueField was instantiated with
+        fields=(DateField(), TimeField()), clean() would call
+        DateField.clean(value[0]) and TimeField.clean(value[1]).
+        """
+        clean_data = []
+        errors = fields.ErrorList()
+        if not value or isinstance(value, (list, tuple)):
+            if not value or not [v for v in value if v not in fields.EMPTY_VALUES]:
+                if self.required:
+
+                    raise ValidationError(self.error_messages['required'])
+                else:
+                    return self.compress([])
+        else:
+            raise ValidationError(self.error_messages['invalid'])
+        for i, field in enumerate(self.fields):
+            try:
+                field_value = value[i]
+            except IndexError:
+                field_value = None
+            if self.required and field_value in fields.EMPTY_VALUES:
+                
+                raise ValidationError(self.error_messages['required'])
+            try:
+                clean_data.append(field.clean(field_value))
+            except ValidationError, e:
+                # Collect all validation errors in a single list, which we'll
+                # raise at the end of clean(), rather than raising a single
+                # exception for the first error we encounter.
+                errors.extend(e.messages)
+        if errors:
+            raise ValidationError(errors)
+        
+        return self.compress(clean_data)
+
+
+
+class ChoiceOptionGrid(BaseAnswerForm):
+    answer = ChoiceOptionGridField( [] )
+    
+    def save(self, commit=True):
+
+        if not self.cleaned_data['answer']:
+            if self.fields['answer'].required:
+                raise ValidationError, _('Choose your answer.')
+            return
+
+        ans = Answer()
+        ans.question = self.question
+        ans.session_key = self.session_key
+        ans.text = self.cleaned_data['answer']
+        if commit: 
+            ans.save()
+
+        return self.cleaned_data['answer']
+    
+    def clean_answer(self):
+        keys = self.cleaned_data['answer']
+        return keys
+    
+    def __init__(self, *args, **kwdargs):
+        
+        
+        BaseAnswerForm.__init__(self, *args, **kwdargs)
+        
+        self.fields["answer"] = ChoiceOptionGridField( [], label=self.question.text )
+        
+        choices = []
+        choices_dict = {}
+
+
+        for opt in self.question.choices.all().order_by("order"):
+            text = opt.text
+            if opt.image and opt.image.url:
+                text = mark_safe(opt.text + '<br />' + opt.image.url)
+            choices.append((str(opt.id),text))
+            choices_dict[str(opt.id)] = opt.text
+
+
+        self.choices = choices
+        self.choices_dict = choices_dict
+            
+        self.extra_headers = self.question.extra_headers.split(",")
+        answerfield = self.fields['answer']
+
+        answerfield.widget = ChoiceOptionGridWidget( widgets=[] )
+        
+        choices_with_ids = [a for a in enumerate(self.extra_headers) ]
+        
+        
+        for choice in self.choices:
+            question_text = choice[1]
+            
+            atrs = {"question_text":question_text}
+            
+            w = RadioSelect( choices=choices_with_ids, attrs=atrs )
+            f = ChoiceField( choices=choices_with_ids, required=False, label=question_text, widget=w, help_text=question_text )
+            answerfield.fields.append(f)
+            answerfield.widget.widgets.append( w )
+
+
 ## each question gets a form with one element, determined by the type
 ## for the answer.
 QTYPE_FORM = {
@@ -202,6 +343,7 @@ QTYPE_FORM = {
     'R': ChoiceRadio,
     'I': ChoiceImage,
     'C': ChoiceCheckbox,
+    'G': ChoiceOptionGrid,
 }
 
 def forms_for_survey(survey, request, edit_existing=False):

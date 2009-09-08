@@ -4,6 +4,9 @@ import os
 sys.path.insert(0, '.')
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
+from pkg_resources import require
+require("django>=1.1")
+
 from django.core.management import execute_manager
 try:
     import settings # Assumed to be in the same directory.
