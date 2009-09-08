@@ -14,6 +14,8 @@ from views import answers_list, answers_detail,\
                 choice_add, choice_update, choice_delete, delete_image,\
                 visible_survey_list
 
+def choice_move(*args, **kwargs): pass
+def question_move(*args, **kwargs): pass
 
 urlpatterns = patterns('',
 
@@ -31,14 +33,16 @@ urlpatterns = patterns('',
     url(r'^add/$', survey_add,   name='survey-add'),
     url(r'^update/(?P<survey_slug>[-\w]+)/$', survey_update,   name='survey-update'),
     url(r'^delete/(?P<survey_slug>[-\w]+)/$', survey_delete, name='survey-delete'),
-
+    
     url(r'^question/add/(?P<survey_slug>[-\w]+)/$', question_add,   name='question-add'),
     url(r'^question/update/(?P<survey_slug>[-\w]+)/(?P<question_id>\d+)/$', question_update,   name='question-update'),
     url(r'^question/delete/(?P<survey_slug>[-\w]+)/(?P<question_id>\d+)/$', question_delete,   name='question-delete'),
+    url(r'^question/move/(?P<survey_slug>[-\w]+)/(?P<question_id>\d+)/(?P<up>\d+)$', question_move,   name='question-move'),
 
     url(r'^choice/add/(?P<question_id>\d+)/$', choice_add,   name='choice-add'),
     url(r'^choice/update/(?P<question_id>\d+)/(?P<choice_id>\d+)/$', choice_update,   name='choice-update'),
     url(r'^choice/delete/(?P<survey_slug>[-\w]+)/(?P<choice_id>\d+)/$', choice_delete,   name='choice-delete'),
+    url(r'^choice/move/(?P<survey_slug>[-\w]+)/(?P<question_id>\d+)/(?P<choice_id>\d+)/(?P<up>\d+)$', choice_move,   name='choice-move'),
 
     url(r'^delete_image/(?P<model_string>[-\w]+)/(?P<object_id>\d+)/$', delete_image, name='delete-image'),
     )

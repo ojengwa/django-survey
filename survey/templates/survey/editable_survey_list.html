@@ -7,12 +7,13 @@
 <ul class="object-tools"><li><a href={% url survey-add %} class="addlink">{% trans "Add survey"  %}</a></li></ul>
 <fieldset class="module">
 <table style="width: 100%">
-    <thead><th>{% trans "Survey"%}</th><th>{% trans "Status"%}</th><th>{% trans "Info"%}</th><th>{% trans "Actions"%}</th></thead>
+    <thead><th>{% trans "Survey"%}</th><th>{% trans "Status"%}</th><th>{% trans "Template"%}</th><th>{% trans "Info"%}</th><th>{% trans "Actions"%}</th></thead>
     {% for survey in object_list %}
     <tr class="{% cycle row1,row2 %}">
         <td><a href='{% url survey-detail survey_slug=survey.slug %}'>{{ survey.title }}</a>
         </td>
         <td>{{ survey.status }}</td>
+        <td>{{ survey.template_name }}</td>
         <td>
         {% if user|can_view_answers:survey %}
             {% if survey.interview_count %}

@@ -34,7 +34,7 @@ class SurveyManager(models.Manager):
 class Survey(models.Model):
 
     title   = models.CharField(_('survey title'), max_length=255)
-    slug    = models.SlugField(_('slug'), max_length=255, unique=True)
+    slug    = models.SlugField(_('slug'), max_length=255, )#unique=True)
     description= models.TextField(verbose_name=_("description"),
                             help_text=_("This field appears on the public web site and should give an overview to the interviewee"),
                             blank=True)
@@ -166,10 +166,13 @@ class Question(models.Model):
     qtype = models.CharField(_('question type'), max_length=2,
                                 choices=QTYPE_CHOICES)
     required = models.BooleanField(_('required'), default=True)
-    text     = models.TextField(_('question text'))
-    extra_headers     = models.TextField(_('extra_headers'),default="",null=True, blank=True)
-    order = models.IntegerField(verbose_name = _("order"),
-                                null=True, blank=True)
+    text     = models.TextField(_('question text') ,max_length=2048 )
+    extra_headers     = models.TextField(_('extra_headers'),default="",null=True, blank=True, max_length=1024)
+    order = models.FloatField(verbose_name = _("order"),
+                                default=1.0, blank=False)
+    
+#    _order = models.IntegerField(verbose_name = _("_order"), null=True )
+    
     # TODO: Add a button or check box to remove the file. There are several
     # recipes floating on internet. I like the one with a custom widget
     image = models.ImageField(verbose_name=_("image"),
@@ -197,10 +200,10 @@ class Question(models.Model):
     def __unicode__(self):
         return u' - '.join([self.survey.slug, self.text])
 
-    class Meta:
-        unique_together = (('survey', 'text'),)
-        order_with_respect_to='survey'
-        ordering = ('survey', 'order')
+#    class Meta:
+#        unique_together = (('survey', 'text'),)
+#        order_with_respect_to='survey'
+#        ordering = ('survey', 'order')
 
     class Admin:
         list_select_related = True

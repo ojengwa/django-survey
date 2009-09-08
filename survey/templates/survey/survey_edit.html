@@ -15,7 +15,7 @@ input[type="radio"] { vertical-align: top; }
         <th>{% trans "Object" %}</th><th>{% trans "Actions" %}</th>
     </thead>
     <tr class="{% cycle row1,row2 %}">
-        <td>{% trans "Survey"  %}</td>
+        <td><img src="/site_media/images/icons/document.gif" alt="{% trans "Survey"  %}" /></td>
         <td>-</td>
         <td>-</td>
         <td>
@@ -25,40 +25,48 @@ input[type="radio"] { vertical-align: top; }
             <p> {{ survey.closes }}</p>
         </td>
         <td>
-            <a href='{% url survey-update survey_slug=survey.slug %}'>{% trans "Update"  %}</a>
-            <a href='{% url survey-delete survey_slug=survey.slug %}'>{% trans "Delete"  %}</a>
-            <a href='{% url question-add survey_slug=survey.slug %}'>{% trans "Add a question"  %}</a>
+            {% block survey_opts %}<a href='{% url survey-update survey_slug=survey.slug %}'><img src="/site_media/images/icons/application_edit.gif" alt="{% trans "Edit Survey"  %}" /></a>
+            <a href='{% url survey-delete survey_slug=survey.slug %}'><img src="/site_media/images/icons/trash_empty.gif" alt="{% trans "Delete Survey"  %}" /></a>
+            <a href='{% url question-add survey_slug=survey.slug %}'><img src="/site_media/images/icons/symbol_addition.gif" alt="{% trans "Add a question"  %}" /></a>{% endblock %}
         </td>
     </tr>
     {% for question in survey.questions.all|order_by:"order" %}
         <tr>
-            <td>{% trans "Question"  %}</td>
+            <td><img src="/site_media/images/icons/symbol_question.gif" alt="{% trans "Question"  %}" /></td>
             <td>{{ question.order }}</td>
             <td>{{ question.get_qtype_display }}</td>
             <td>
                 <p>{{ question.text }}</p>
                 <p>{{ question.qstyle }}</p>
             </td>
-            <td>
-                <a href='{% url question-update survey_slug=survey.slug, question_id=question.id %}'>{% trans "Update"  %}</a>
-                <a href='{% url question-delete survey_slug=survey.slug, question_id=question.id %}'>{% trans "Delete"  %}</a>
-                <a href='{% url choice-add question_id=question.id %}'>{% trans "Add a choice"  %}</a>
+            <td>{% block qeustion_opts %}
+                <a href='{% url question-update survey_slug=survey.slug, question_id=question.id %}'><img src="/site_media/images/icons/application_edit.gif" alt="{% trans "Edit Question"  %}" /></a>
+                <a href='{% url question-delete survey_slug=survey.slug, question_id=question.id %}'><img src="/site_media/images/icons/trash_empty.gif" alt="{% trans "Delete Question"  %}" /></a>
+                <a href='{% url choice-add question_id=question.id %}'><img src="/site_media/images/icons/symbol_addition.gif" alt="{% trans "Add a choice"  %}" /></a>
+                <a href='{% url question-move survey_slug=survey.slug,question_id=question.id,up=1 %}'><img src="/site_media/images/icons/arrow_up.gif" alt="{% trans "Question Up"  %}" /></a>
+                <a href='{% url question-move survey_slug=survey.slug,question_id=question.id,up=0 %}'><img src="/site_media/images/icons/arrow_down.gif" alt="{% trans "Question Down"  %}" /></a>
+                {% endblock %}
             </td>
-        </tr>
+        </tr><td/><td colspan="4">
+        <table>
         {% for choice in question.choices.all|order_by:"order" %}
             <tr>
-                <td>{% trans "choice"  %}</td>
+                <td><img src="/site_media/images/icons/symbol_check.gif" alt="{% trans "choice"  %}" /></td>
                 <td>{{ choice.order }}</td>
                 <td>-</td>
                 <td>
                     <p>{{ choice.text }}</p>
                 </td>
-                <td>
-                    <a href='{% url choice-update question_id=question.id,choice_id=choice.id %}'>{% trans "Update"  %}</a>
-                    <a href='{% url choice-delete survey_slug=survey.slug, choice_id=choice.id %}'>{% trans "Delete"  %}</a>
+                <td>{% block choice_opts %}
+                    <a href='{% url choice-update question_id=question.id,choice_id=choice.id %}'><img src="/site_media/images/icons/application_edit.gif" alt="{% trans "Edit"  %}" /></a>
+                    <a href='{% url choice-delete survey_slug=survey.slug, choice_id=choice.id %}'><img src="/site_media/images/icons/trash_empty.gif" alt="{% trans "Delete"  %}" /></a>
+                    <a href='{% url choice-move survey_slug=survey.slug,question_id=question.id,choice_id=choice.id,up=1 %}'><img src="/site_media/images/icons/arrow_up.gif" alt="{% trans "Up"  %}" /></a>
+                    <a href='{% url choice-move survey_slug=survey.slug,question_id=question.id,choice_id=choice.id,up=0 %}'><img src="/site_media/images/icons/arrow_down.gif" alt="{% trans "Down"  %}" /></a>
+                    {% endblock %}
                 </td>
             </tr>
         {% endfor %}
+        </table></td></tr>
     {% endfor %}
 
 </table>

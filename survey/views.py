@@ -267,6 +267,19 @@ def question_update(request,survey_slug,question_id,
                               context_instance=RequestContext(request))
 
 @login_required()
+def question_move(request,survey_slug,question_id,up,
+                  template_name = 'survey/survey_detail.html',
+                  extra_context=None,
+                    *args, **kw):
+    
+@login_required()
+def choice_move(request,survey_slug,question_id,choice_id,up
+                  template_name = 'survey/survey_detail.html',
+                  extra_context=None,
+                    *args, **kw)
+
+
+@login_required()
 def question_delete(request,survey_slug,question_id,
                     group_slug=None, group_slug_field=None,
                     group_qs=None,
@@ -280,8 +293,7 @@ def question_delete(request,survey_slug,question_id,
     return delete_object(request, object_id=question_id,
         **{"model":Question,
          "post_delete_redirect": reverse("survey-edit",None,(),
-                                         {"survey_slug":survey_slug,
-                                          "group_slug":group_slug}),
+                                         {"survey_slug":survey_slug,}),
          "template_object_name":"question",
          "login_required": True,
          'extra_context': {'title': _('Delete question')}
