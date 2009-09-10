@@ -284,17 +284,18 @@ def question_move(request,survey_slug,question_id,up,
     
     _up = int(up)
     
-    if up==1:
+    if _up==1:
         if question_index > 0:
             target_index = question_index - 1
         else:
             target_index = question_index
-    else:
+    elif _up==0:
         if question_index == len( all_questions ) -1:
             target_index = question_index
         else:
             target_index = question_index + 1
-            
+    else:
+        assert False, "Unknown value for up: %s" % repr(_up)
     
             
     if target_index != question_index:
