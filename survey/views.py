@@ -268,15 +268,74 @@ def question_update(request,survey_slug,question_id,
 
 @login_required()
 def question_move(request,survey_slug,question_id,up,
+                  template_name = "survey/survey_edit.html",
+                  group_slug=None,
+                  extra_context=None,
+                    *args, **kw):
+    
+    survey = get_object_or_404(Survey, slug=survey_slug)
+    question =  get_object_or_404(Question,id=question_id)
+    
+    all_questions = [ a for a in survey.questions.all().order_by("order") ]
+    
+    
+    
+    question_index = all_questions.index(question)
+    
+    _up = int(up)
+    
+    if up==1:
+        if question_index > 0:
+            target_index = question_index - 1
+        else:
+            target_index = question_index
+    else:
+        if question_index == len( all_questions ) -1:
+            target_index = question_index
+        else:
+            target_index = question_index + 1
+            
+    
+            
+    if target_index != question_index:
+        qq = all_questions.pop(question_index)
+        all_questions.insert(target_index, qq )
+        
+    
+    #Reset order
+    for i, a in enumerate( all_questions ):
+        a.order = float(i)
+    
+    [ a.save() for a in all_questions ]
+    
+    return render_to_response(template_name,
+                              {'survey': survey,
+                               'group_slug': group_slug},
+                              context_instance=RequestContext(request))
+             
+    
+    
+    
+    
+@login_required()
+def choice_move(request,survey_slug,question_id,choice_id,up,
                   template_name = 'survey/survey_detail.html',
                   extra_context=None,
                     *args, **kw):
     
-@login_required()
-def choice_move(request,survey_slug,question_id,choice_id,up
-                  template_name = 'survey/survey_detail.html',
-                  extra_context=None,
-                    *args, **kw)
+    survey = get_object_or_404(Survey, slug=survey_slug)
+    question =  get_object_or_404(Question,id=question_id)
+    
+    import pdb
+    pdb.set_trace()
+    
+    return render_to_response(template_name,
+                              {'title': _("Update question"),
+                               'question' : question,
+                               'model_string' : "Question",
+                               'form' : question_form},
+                              context_instance=RequestContext(request))
+
 
 
 @login_required()

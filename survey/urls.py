@@ -12,10 +12,7 @@ from views import answers_list, answers_detail,\
                 editable_survey_list, survey_delete, survey_update,\
                 question_add, question_update,question_delete,\
                 choice_add, choice_update, choice_delete, delete_image,\
-                visible_survey_list
-
-def choice_move(*args, **kwargs): pass
-def question_move(*args, **kwargs): pass
+                visible_survey_list, choice_move, question_move
 
 urlpatterns = patterns('',
 
