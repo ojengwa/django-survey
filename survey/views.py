@@ -266,6 +266,42 @@ def question_update(request,survey_slug,question_id,
                                'form' : question_form},
                               context_instance=RequestContext(request))
 
+
+def generic_move( all_objects, obj_to_move, direction ):
+    assert isinstance( all_objects, list )
+    assert isinstance( direction, int )
+    assert obj_to_move in all_objects
+    
+    obj_index = all_objects.index(obj_to_move)
+    
+    
+    if direction==1:
+        if obj_index > 0:
+            target_index = obj_index - 1
+        else:
+            target_index = obj_index
+    elif direction==0:
+        if obj_index == len( all_objects ) -1:
+            target_index = obj_index
+        else:
+            target_index = obj_index + 1
+    else:
+        assert False, "Unknown value for up: %s" % repr(direction)
+    
+            
+    if target_index != obj_index:
+        qq = all_objects.pop(obj_index)
+        all_objects.insert(target_index, qq )
+        
+    
+    #Reset order
+    for i, a in enumerate( all_objects ):
+        a.order = float(i)
+    
+    [ a.save() for a in all_objects ]
+    
+    return all_objects
+
 @login_required()
 def question_move(request,survey_slug,question_id,up,
                   template_name = "survey/survey_edit.html",
@@ -278,36 +314,7 @@ def question_move(request,survey_slug,question_id,up,
     
     all_questions = [ a for a in survey.questions.all().order_by("order") ]
     
-    
-    
-    question_index = all_questions.index(question)
-    
-    _up = int(up)
-    
-    if _up==1:
-        if question_index > 0:
-            target_index = question_index - 1
-        else:
-            target_index = question_index
-    elif _up==0:
-        if question_index == len( all_questions ) -1:
-            target_index = question_index
-        else:
-            target_index = question_index + 1
-    else:
-        assert False, "Unknown value for up: %s" % repr(_up)
-    
-            
-    if target_index != question_index:
-        qq = all_questions.pop(question_index)
-        all_questions.insert(target_index, qq )
-        
-    
-    #Reset order
-    for i, a in enumerate( all_questions ):
-        a.order = float(i)
-    
-    [ a.save() for a in all_questions ]
+    generic_move( all_questions, question, up=="1" )
     
     return render_to_response(template_name,
                               {'survey': survey,
@@ -320,21 +327,20 @@ def question_move(request,survey_slug,question_id,up,
     
 @login_required()
 def choice_move(request,survey_slug,question_id,choice_id,up,
-                  template_name = 'survey/survey_detail.html',
+                  template_name = 'survey/survey_edit.html',
+                  group_slug=None,
                   extra_context=None,
                     *args, **kw):
     
-    survey = get_object_or_404(Survey, slug=survey_slug)
+    survey = get_object_or_404(Survey, slug=survey_slug)                
     question =  get_object_or_404(Question,id=question_id)
-    
-    import pdb
-    pdb.set_trace()
+    choice =  get_object_or_404(Choice,id=choice_id)
+    all_choices = [ a for a in question.choices.all().order_by("order") ]
+    generic_move( all_choices, choice, up=="1" )
     
     return render_to_response(template_name,
-                              {'title': _("Update question"),
-                               'question' : question,
-                               'model_string' : "Question",
-                               'form' : question_form},
+                              {'survey': survey,
+                               'group_slug': group_slug},
                               context_instance=RequestContext(request))
 
 
