@@ -64,7 +64,11 @@ class Survey(models.Model):
     recipient = generic.GenericForeignKey('recipient_type', 'recipient_id')
     
     # A URL to show to the user after the survey is done.
-    post_survery_url = models.CharField(_('post_survery_url'), max_length=256, help_text="A URL to display after the survey is finished.", default=None)
+    post_survery_url = models.CharField( _('post_survery_url'), 
+                                         max_length=256, 
+                                         help_text="A URL to display after the survey is finished.", 
+                                         default=None,
+                                         blank=True )
     
     objects = SurveyManager()
 
@@ -103,7 +107,7 @@ class Survey(models.Model):
     def status(self):
         if not self.visible: return _('private')
         if self.open: return _('open')
-        if datetime.now() < self.opens:
+        if datetime.now() < self.open:
             return unicode(_('opens ')) + datefilter(self.opens)
         return _('closed')
 
