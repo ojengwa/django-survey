@@ -21,7 +21,8 @@ QTYPE_CHOICES = (
     ('R', 'Radio List'),
     ('I', 'Radio Image List'),
     ('C', 'Checkbox List'),
-    ('G', 'Option Grid')
+    ('G', 'Option Grid'),
+    ('X', 'X to Y')
 )
 
 class SurveyManager(models.Manager):

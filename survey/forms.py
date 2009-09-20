@@ -273,6 +273,9 @@ class ChoiceOptionGridField( MultiValueField ):
 class ChoiceOptionGrid(BaseAnswerForm):
     answer = ChoiceOptionGridField( [] )
     
+    WIDGET_TYPE = RadioSelect
+    FIELD_TYPE = ChoiceField
+    
     def save(self, commit=True):
 
         if not self.cleaned_data['answer']:
@@ -293,46 +296,37 @@ class ChoiceOptionGrid(BaseAnswerForm):
         keys = self.cleaned_data['answer']
         return keys
     
+    def get_extra_headers(self):
+        return self.question.extra_headers.split(",")
+    
     def __init__(self, *args, **kwdargs):
-        
-        
         BaseAnswerForm.__init__(self, *args, **kwdargs)
-        
         self.fields["answer"] = ChoiceOptionGridField( [], label=self.question.text )
-        
         choices = []
         choices_dict = {}
-
-
         for opt in self.question.choices.all().order_by("order"):
             text = opt.text
             if opt.image and opt.image.url:
                 text = mark_safe(opt.text + '<br />' + opt.image.url)
             choices.append((str(opt.id),text))
             choices_dict[str(opt.id)] = opt.text
-
-
         self.choices = choices
         self.choices_dict = choices_dict
-            
-        self.extra_headers = self.question.extra_headers.split(",")
+        self.extra_headers = self.get_extra_headers()        
         answerfield = self.fields['answer']
-
         answerfield.widget = ChoiceOptionGridWidget( widgets=[] )
-        
         choices_with_ids = [a for a in enumerate(self.extra_headers) ]
-        
-        
         for choice in self.choices:
             question_text = choice[1]
-            
             atrs = {"question_text":question_text}
-            
-            w = RadioSelect( choices=choices_with_ids, attrs=atrs )
-            f = ChoiceField( choices=choices_with_ids, required=False, label=question_text, widget=w, help_text=question_text )
+            w = self.WIDGET_TYPE( choices=choices_with_ids, attrs=atrs )
+            f = self.FIELD_TYPE( choices=choices_with_ids, required=False, label=question_text, widget=w, help_text=question_text )
             answerfield.fields.append(f)
             answerfield.widget.widgets.append( w )
 
+class ChoiceXtoYGrid(ChoiceOptionGrid):
+    pass
+    
 
 ## each question gets a form with one element, determined by the type
 ## for the answer.
@@ -344,6 +338,7 @@ QTYPE_FORM = {
     'I': ChoiceImage,
     'C': ChoiceCheckbox,
     'G': ChoiceOptionGrid,
+    'X': ChoiceXtoYGrid,
 }
 
 def forms_for_survey(survey, request, edit_existing=False):
