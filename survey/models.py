@@ -71,6 +71,13 @@ class Survey(models.Model):
                                          default=None,
                                          blank=True )
     
+    # A URL to show to the user after the survey is done.
+    banner_image = models.CharField( _('banner_image'), 
+                                        max_length=256, 
+                                        help_text="An image to display at the top of the survey.", 
+                                        default=None,
+                                        blank=True )
+    
     objects = SurveyManager()
 
     @property

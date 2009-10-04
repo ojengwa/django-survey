@@ -13,7 +13,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.template import Context, loader
 from django.template.defaultfilters import slugify
-from django.forms import fields
+from survey.widgets import HorizontalRadioSelect
+from django.forms.util import ErrorList
 
 from itertools import chain
 import uuid
@@ -195,6 +196,7 @@ class ChoiceCheckbox(BaseAnswerForm):
             ans = Answer()
             ans.question = self.question
             ans.session_key = self.session_key
+            ans.interview_uuid = self.interview_uuid
             ans.text = text
             if commit: ans.save()
             ans_list.append(ans)
@@ -220,6 +222,8 @@ class ChoiceOptionGridWidget( MultiWidget ):
 
 class ChoiceOptionGridField( MultiValueField ):
     
+    EMPTY_VALUES = (None, '')
+    
     def compress(self, inp=None, *args, **kwargs ):
         if inp:
             result = ",".join(inp)
@@ -238,9 +242,10 @@ class ChoiceOptionGridField( MultiValueField ):
         DateField.clean(value[0]) and TimeField.clean(value[1]).
         """
         clean_data = []
-        errors = fields.ErrorList()
+        errors = ErrorList()
+        
         if not value or isinstance(value, (list, tuple)):
-            if not value or not [v for v in value if v not in fields.EMPTY_VALUES]:
+            if not value or not [v for v in value if v not in self.EMPTY_VALUES]:
                 if self.required:
 
                     raise ValidationError(self.error_messages['required'])
@@ -253,7 +258,7 @@ class ChoiceOptionGridField( MultiValueField ):
                 field_value = value[i]
             except IndexError:
                 field_value = None
-            if self.required and field_value in fields.EMPTY_VALUES:
+            if self.required and field_value in self.EMPTY_VALUES:
                 
                 raise ValidationError(self.error_messages['required'])
             try:
@@ -273,7 +278,7 @@ class ChoiceOptionGridField( MultiValueField ):
 class ChoiceOptionGrid(BaseAnswerForm):
     answer = ChoiceOptionGridField( [] )
     
-    WIDGET_TYPE = RadioSelect
+    WIDGET_TYPE = HorizontalRadioSelect
     FIELD_TYPE = ChoiceField
     
     def save(self, commit=True):
@@ -286,6 +291,7 @@ class ChoiceOptionGrid(BaseAnswerForm):
         ans = Answer()
         ans.question = self.question
         ans.session_key = self.session_key
+        ans.interview_uuid = self.interview_uuid
         ans.text = self.cleaned_data['answer']
         if commit: 
             ans.save()
