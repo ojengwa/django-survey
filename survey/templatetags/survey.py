@@ -26,7 +26,9 @@ def order_by(queryset, args):
 
 @register.filter
 def repr( obj ):
-    
+    """
+    Handy for debugging an object you want to display.
+    """
     try:
         output = str(obj)
     except Exception, e:
@@ -34,3 +36,12 @@ def repr( obj ):
         return "<br/>\n".join(tb)
     return output
     
+@register.filter
+def debug_obj( obj ):
+    """
+    Handy for debugging an object you want to display.
+    """
+    import pdb
+    pdb.set_trace()
+    
+    return obj

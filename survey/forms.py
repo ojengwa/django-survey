@@ -3,7 +3,7 @@ from django.conf import settings
 from django.forms import BaseForm, Form, ValidationError
 from django.forms import CharField, ChoiceField, SplitDateTimeField,\
                             CheckboxInput, BooleanField,FileInput,\
-                            FileField, ImageField
+                            FileField, ImageField, EmailField
 from django.forms import Textarea, TextInput, Select, RadioSelect,\
                             CheckboxSelectMultiple, MultipleChoiceField,\
                             SplitDateTimeWidget,MultiWidget, MultiValueField
@@ -65,10 +65,6 @@ class BaseAnswerForm(Form):
     def save(self, commit=True):
         if not self.cleaned_data['answer']:
             if self.fields['answer'].required:
-                
-                import pdb
-                pdb.set_trace()
-                
                 raise ValidationError, _('Please answer this question.')
             return
         ans = self.answer
@@ -87,6 +83,9 @@ class BaseAnswerForm(Form):
 
 class TextInputAnswer(BaseAnswerForm):
     answer = CharField()
+
+class EmailInputAnswer(TextInputAnswer):
+    answer = EmailField( )
 
 class TextAreaAnswer(BaseAnswerForm):
     answer = CharField(widget=Textarea)
@@ -148,7 +147,6 @@ class ChoiceRadio(ChoiceAnswer):
 class ChoiceImage(ChoiceAnswer):
     def __init__(self, *args, **kwdargs):
         super(ChoiceImage, self).__init__(*args, **kwdargs)
-        #import pdb; pdb.set_trace()
         self.choices = [ (k,mark_safe(v)) for k,v in self.choices ]
         self.fields['answer'].widget = RadioSelect(choices=self.choices)
 
@@ -338,6 +336,7 @@ class ChoiceXtoYGrid(ChoiceOptionGrid):
 ## for the answer.
 QTYPE_FORM = {
     'T': TextInputAnswer,
+    'E': EmailInputAnswer,
     'A': TextAreaAnswer,
     'S': ChoiceAnswer,
     'R': ChoiceRadio,
@@ -346,6 +345,11 @@ QTYPE_FORM = {
     'G': ChoiceOptionGrid,
     'X': ChoiceXtoYGrid,
 }
+
+def iter_survey_questions( s ):
+    for i, q in enumerate( s.questions.all().order_by("order") ):
+        q.question_number = i+1
+        yield q
 
 def forms_for_survey(survey, request, edit_existing=False):
     ## add session validation to base page.
@@ -358,7 +362,7 @@ def forms_for_survey(survey, request, edit_existing=False):
     else:
         post = None
     return [QTYPE_FORM[q.qtype](q, login_user, random_uuid, session_key, prefix=sp+str(q.id), data=post, edit_existing=edit_existing)
-            for q in survey.questions.all().order_by("order") ]
+            for q in iter_survey_questions(survey) ]
 
 class CustomDateWidget(TextInput):
     class Media:

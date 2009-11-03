@@ -16,6 +16,7 @@ from django.contrib.contenttypes import generic
 
 QTYPE_CHOICES = (
     ('T', 'Text Input'),
+    ('E', 'Email Input'),
     ('A', 'Text Area'),
     ('S', 'Select One Choice'),
     ('R', 'Radio List'),
